@@ -1,53 +1,60 @@
 {
+  "lastUpdated": "2026-02-07",
+  "source": "Apartments.com, Zumper, Redfin, TAMU Housing, local contracts",
   "college-station": {
-    "location": "College Station, TX",
-    "source": "Apartments.com, Zumper, Redfin, HomeAdvisor, Glassdoor, Indeed (Feb 2026)",
-    
-    "rental": {
-      "rent_studio": 1050,
-      "rent_1br": 1070,
-      "rent_2br": 1240,
-      "rent_3br": 1490,
-      "rent_4br": 2200,
-      "rent_5br": 2800,
-      "rent_6br": 3400,
-      "late_fee_avg": 35,
-      "pet_fee_one_time": 300,
-      "pet_monthly": 25,
-      "deposit_avg": 1000,
-      "deposit_note": "Typically 1 month's rent",
-      "notice_days": 45,
-      "notice_note": "Texas minimum for month-to-month",
-      "maintenance_sla": "48 hours",
-      "entry_notice_hours": 24,
-      "lease_length_months": 12,
-      "application_fee_avg": 50,
-      "parking_fee_monthly": 75
-    },
-    
-    "freelance": {
-      "lawn_mowing_monthly": 120,
-      "ac_service_call": 150,
-      "plumber_hourly": 95,
-      "electrician_hourly": 85,
-      "late_payment_penalty": "1.5% monthly",
-      "cancellation_notice": "24 hours",
-      "revision_rounds_typical": 2,
-      "payment_terms_typical": "Net-30"
-    },
-    
-    "employment": {
-      "hourly_min_wage": 12.5,
-      "internship_monthly_stipend": 1200,
-      "signing_bonus_threshold": 5000,
-      "non_compete_years_avg": 1,
-      "relocation_assistance_avg": 2000,
-      "probation_period_months": 3,
-      "pto_days_typical": 15,
-      "pto_note": "Entry-level to mid",
-      "salary_software_engineer_jr": 75000,
-      "salary_software_engineer_mid": 95000,
-      "401k_match_typical": "4%"
-    }
+    "rent_studio": 1050,
+    "rent_1br": 1070,
+    "rent_2br": 1240,
+    "rent_3br": 1490,
+    "rent_4br": 2200,
+    "rent_5br": 2800,
+    "rent_6br": 3400,
+    "sublease_fee": 300,
+    "early_termination_fee": "1.5x monthly rent",
+    "renters_insurance_min": 100000,
+    "utilities_tenant_pays": ["electric", "gas", "internet"],
+    "application_fee": 50,
+    "admin_movein_fee": 200,
+    "guarantor_required_income": "3x rent",
+    "late_fee_avg": 35,
+    "pet_fee_one_time": 300,
+    "pet_monthly": 25,
+    "deposit_avg": 1000,
+    "notice_days": 45,
+    "web_dev_hourly": 65,
+    "graphic_design_hourly": 55,
+    "marketing_hourly": 60,
+    "kill_fee_percent": 25,
+    "ip_ownership": "deliverables only",
+    "payment_milestones": "50/50",
+    "lawn_mowing_monthly": 120,
+    "ac_service_call": 150,
+    "plumber_hourly": 95,
+    "electrician_hourly": 85,
+    "data_analyst_salary": 68000,
+    "product_manager_salary": 95000,
+    "designer_salary": 72000,
+    "stock_options_startup": "0.1-0.25% equity",
+    "health_premium_employee": 150,
+    "signing_bonus_typical": 4000,
+    "probation_months": 3
+  },
+  "bryan": {
+    "rent_1br": 950,
+    "rent_4br": 2000,
+    "late_fee_avg": 30,
+    "sublease_fee": 250
+  },
+  "austin": {
+    "rent_1br": 1450,
+    "rent_4br": 3200,
+    "late_fee_avg": 45,
+    "sublease_fee": 400
+  },
+  "houston": {
+    "rent_1br": 1250,
+    "rent_4br": 2600,
+    "late_fee_avg": 40,
+    "sublease_fee": 350
   }
 }
