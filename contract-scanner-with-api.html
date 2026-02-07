@@ -924,7 +924,7 @@ LEASE EXTRACTION: Monthly Rent = amount due EACH month. If contract shows TOTAL 
                 const contractPart = financialHints + contractText.slice(0, 20000 - financialHints.length);
                 const userPrompt = `Analyze this ${contractType} contract. Return valid JSON with:
 - riskScore { overall, grade, breakdown }
-- summary: MUST match contract type. lease: "Rent: $X/month", "Deposit: $X", "Lease: X months". freelance: "Rate: $X/hr", "Payment: Net-30", "Scope: X". job: "Salary: $X/year", "Start date: X", "Benefits: X". Do NOT use lease terms for freelance/job or vice versa.
+- summary: 6-8 SEPARATE bullets. lease: Rent, Deposit, Lease term, Late fee, Pet fee, Entry notice, Utilities, Application fee. freelance: Rate, Payment, Scope, Revisions, IP. job: Salary, Start date, Benefits, PTO, Equity. Return 6-8 items, NOT 3. Extract every key term.
 - comparison { location, contractsAnalyzed, metrics }: Labels MUST match contract type. lease: Monthly Rent, Security Deposit. freelance: Rate, Payment Terms. job: Base Salary, Equity. yourValue, marketAvg, difference, status, suggestion. Never leave label empty.
 - risks array, totalSavings. Each risk MUST have: title (e.g. "Late fee exceeds legal maximum"), description (what's wrong), standard (what's normal), savings, script (email with [Landlord Name]). Never leave title, description, or script empty.
 Categories: ${guidance.categories.join(', ')}. ${comparisonHint} ${leaseSearchHint}
@@ -1078,7 +1078,7 @@ ${JSON.stringify(payload)}`;
                     }
 
                     // Step 4: Normalize API response (Gemini may return different shapes)
-                    const toArray = (x) => Array.isArray(x) ? x : (x && typeof x === 'object' ? Object.values(x) : []);
+                    const toArray = (x) => Array.isArray(x) ? x : (x && typeof x === 'object' && !Array.isArray(x) ? Object.values(x) : (typeof x === 'string' ? [x] : []));
                     const breakdown = toArray(analysis.riskScore?.breakdown);
                     const safeStr = (x) => {
                         if (typeof x === 'string') return x;
@@ -1127,13 +1127,23 @@ ${JSON.stringify(payload)}`;
                             })
                         },
                         analysis: {
-                            summary: toArray(analysis.summary)
-                                .map((s) => {
+                            summary: (() => {
+                                const raw = analysis.summary;
+                                let items = [];
+                                if (Array.isArray(raw)) items = raw;
+                                else if (typeof raw === 'string') {
+                                    items = raw.split(/\n+/).map(t => t.trim()).filter(t => t.length > 2);
+                                    if (items.length <= 1 && raw.includes(', ')) items = raw.split(/,\s*/).map(t => t.trim()).filter(t => t.length > 2);
+                                    if (items.length === 0 && raw.includes('. ')) items = raw.split(/\.\s+/).map(t => t.trim()).filter(t => t.length > 2);
+                                    if (items.length === 0 && raw.trim().length > 2) items = [raw.trim()];
+                                }
+                                else if (raw && typeof raw === 'object') items = Object.entries(raw).map(([k, v]) => (k + ': ' + (typeof v === 'string' ? v : String(v ?? ''))).trim());
+                                return items.map((s) => {
                                     if (typeof s === 'string') return s.trim();
-                                    if (s && typeof s === 'object') return safeStr(s.text ?? s.description ?? ((s.category ? s.category + ': ' : '') + (s.text ?? s.description ?? '')));
+                                    if (s && typeof s === 'object') return safeStr(s.text ?? s.description ?? s.value ?? ((s.category ?? s.name ? (s.category ?? s.name) + ': ' : '') + (s.text ?? s.description ?? s.value ?? '')));
                                     return String(s ?? '').trim();
-                                })
-                                .filter((s) => s && s.length > 3 && !/^(Financial Terms|Legal Compliance|Tenant Rights|Hidden Costs|Payment Terms|Scope Protection|IP Rights|Compensation|Benefits|Non-Compete|Equity Terms):\s*$/i.test(s)),
+                                }).filter((s) => s && s.length > 2);
+                            })(),
                             risks: toArray(analysis.risks).map((r) => typeof r === 'object' && r !== null ? {
                                 severity: safeStr(r.severity ?? 'medium'),
                                 title: safeStr(r.title ?? ''),
@@ -1533,12 +1543,16 @@ ${JSON.stringify(payload)}`;
                                                 {t.standardTerms}
                                             </h3>
                                             <div className="space-y-3">
-                                                {(Array.isArray(displayContract?.analysis?.summary) ? displayContract.analysis.summary : selectedContract.analysis?.summary ?? []).map((item, i) => (
-                                                    <div key={i} className="flex items-start gap-3 fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
-                                                        <div className="w-2 h-2 rounded-full bg-[#00FF88] mt-2 flex-shrink-0"></div>
-                                                        <p className="text-gray-700">{typeof item === 'string' ? item : String((item?.text ?? item?.description ?? (item?.category ? item.category + ': ' : '') + (item?.text ?? item?.description ?? '')) || '—')}</p>
-                                                    </div>
-                                                ))}
+                                                {((displayContract?.analysis?.summary ?? selectedContract.analysis?.summary ?? []).length > 0) ? (
+                                                    (displayContract?.analysis?.summary ?? selectedContract.analysis?.summary ?? []).map((item, i) => (
+                                                        <div key={i} className="flex items-start gap-3 fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+                                                            <div className="w-2 h-2 rounded-full bg-[#00FF88] mt-2 flex-shrink-0"></div>
+                                                            <p className="text-gray-700">{typeof item === 'string' ? item : String((item?.text ?? item?.description ?? item?.value ?? (item?.category ?? item?.name ? (item.category ?? item.name) + ': ' : '') + (item?.text ?? item?.description ?? item?.value ?? '')) || '—')}</p>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-gray-500 italic">No standard terms extracted. Try re-scanning the contract.</p>
+                                                )}
                                             </div>
                                         </div>
 

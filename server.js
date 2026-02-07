@@ -74,9 +74,9 @@ app.post('/api/analyze', async (req, res) => {
   const comparisonInstruction = comparisonMetricsByType[contractType] || comparisonMetricsByType.lease;
 
   const summaryByType = {
-    lease: 'summary: 5-7 bullets for LEASE/RENTAL only. E.g. "Rent: $X/month", "Deposit: $X", "Lease: X months", "Late fee: $X", "Utilities: tenant pays X". Do NOT use lease terms for other contract types.',
-    freelance: 'summary: 5-7 bullets for FREELANCE/SERVICE contracts only. E.g. "Rate: $X/hr or $X project", "Payment: Net-30", "Scope: deliverables X", "Revisions: X rounds", "IP: deliverables only". Do NOT use lease or employment terms.',
-    jobOffer: 'summary: 5-7 bullets for JOB OFFER/EMPLOYMENT only. E.g. "Salary: $X/year", "Start date: X", "Benefits: health, 401k", "PTO: X days", "Equity: X options". Do NOT use lease or freelance terms.'
+    lease: 'summary: MUST include 6-8 separate bullets. Include: Rent, Deposit, Lease term, Late fee, Pet deposit/fee (if any), Entry notice (e.g. 24hr), Utilities (who pays), Application fee (if any), Move-in date. Extract every key term from the contract. Do NOT combine into fewer items.',
+    freelance: 'summary: MUST include 6-8 separate bullets. Include: Rate, Payment terms, Scope/deliverables, Revisions, Late payment penalty, IP ownership, Kill fee (if any), Timeline. Extract every key term.',
+    jobOffer: 'summary: MUST include 6-8 separate bullets. Include: Salary, Start date, Benefits, PTO, Equity/options, Vesting, Non-compete scope, Relocation (if any). Extract every key term.'
   };
   const summaryInstruction = summaryByType[contractType] || summaryByType.lease;
 
@@ -118,7 +118,7 @@ Search every page and addendum. Extract EXACT values. Never use "Not in contract
 CRITICAL - Market comparison: ${comparisonInstruction}
 yourValue = EXACT value from contract. marketAvg = typical benchmark.
 
-CRITICAL - summary: MUST match the contract type. ${summaryInstruction} Do NOT use lease terms (Rent, Deposit, Lease term) for freelance or job offers. Do NOT use employment terms for leases or freelance. Each summary item must include the actual value/description.
+CRITICAL - summary: MUST be an array of 6-8 SEPARATE strings. ${summaryInstruction} Each item: one bullet, e.g. "Rent: $975/month", "Deposit: $500", "Lease: 12 months", "Late fee: $50", "Entry notice: 24 hours", "Utilities: tenant pays electric/gas". Return 6-8 items, NOT 3. Search the full contract for all key terms.
 
 CRITICAL - comparison.metrics: Labels MUST match contract type. lease: Monthly Rent, Security Deposit, Late Fee, etc. freelance: Rate, Payment Terms, Revision Rounds, etc. job: Base Salary, Equity, PTO, etc. Never leave label empty.
 
