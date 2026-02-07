@@ -965,13 +965,18 @@ Best,
                     // Step 4: Normalize API response (Gemini may return different shapes)
                     const toArray = (x) => Array.isArray(x) ? x : (x && typeof x === 'object' ? Object.values(x) : []);
                     const breakdown = toArray(analysis.riskScore?.breakdown);
+                    const safeStr = (x) => {
+                        if (typeof x === 'string') return x;
+                        if (x && typeof x === 'object') return ((x.text ?? x.description ?? x.label ?? '') || '');
+                        return String(x ?? '');
+                    };
                     const breakdownNormalized = breakdown.map((item) => {
                         if (typeof item === 'object' && item !== null) {
                             return {
-                                category: item.category ?? item.name ?? 'Category',
+                                category: safeStr(item.category ?? item.name ?? 'Category'),
                                 score: typeof item.score === 'number' ? item.score : 50,
-                                grade: item.grade ?? 'C',
-                                status: item.status ?? ''
+                                grade: safeStr(item.grade ?? 'C'),
+                                status: safeStr(item.status ?? '')
                             };
                         }
                         return { category: 'Category', score: 50, grade: 'C', status: String(item) };
@@ -985,35 +990,39 @@ Best,
                               contractType === 'freelance' ? '📝' : '💼',
                         riskScore: {
                             overall: typeof analysis.riskScore?.overall === 'number' ? analysis.riskScore.overall : 50,
-                            grade: analysis.riskScore?.grade ?? 'C',
+                            grade: safeStr(analysis.riskScore?.grade ?? 'C'),
                             breakdown: breakdownNormalized.length ? breakdownNormalized : [
                                 { category: 'Overall', score: analysis.riskScore?.overall ?? 50, grade: analysis.riskScore?.grade ?? 'C', status: '' }
                             ]
                         },
                         comparison: {
-                            location: analysis.comparison?.location ?? 'N/A',
+                            location: safeStr(analysis.comparison?.location ?? 'N/A'),
                             contractsAnalyzed: analysis.comparison?.contractsAnalyzed ?? 0,
                             metrics: toArray(analysis.comparison?.metrics).map((m) => typeof m === 'object' && m !== null ? {
-                                label: m.label ?? m.name ?? '',
-                                yourValue: m.yourValue ?? m.your ?? '—',
-                                marketAvg: m.marketAvg ?? m.market ?? '—',
-                                difference: m.difference ?? '—',
-                                status: m.status ?? 'fair',
-                                suggestion: m.suggestion ?? null
+                                label: safeStr(m.label ?? m.name ?? ''),
+                                yourValue: safeStr(m.yourValue ?? m.your ?? '—'),
+                                marketAvg: safeStr(m.marketAvg ?? m.market ?? '—'),
+                                difference: safeStr(m.difference ?? '—'),
+                                status: safeStr(m.status ?? 'fair'),
+                                suggestion: m.suggestion != null ? safeStr(m.suggestion) : null
                             } : { label: '', yourValue: '—', marketAvg: '—', difference: '—', status: 'fair', suggestion: null })
                         },
                         analysis: {
-                            summary: toArray(analysis.summary),
+                            summary: toArray(analysis.summary).map((s) => {
+                                if (typeof s === 'string') return s;
+                                if (s && typeof s === 'object') return safeStr(s.text ?? s.description ?? ((s.category ? s.category + ': ' : '') + (s.text ?? s.description ?? '')));
+                                return (String(s ?? '').trim() || '—');
+                            }),
                             risks: toArray(analysis.risks).map((r) => typeof r === 'object' && r !== null ? {
-                                severity: r.severity ?? 'medium',
-                                title: r.title ?? '',
-                                description: r.description ?? '',
-                                standard: r.standard ?? '',
-                                savings: r.savings ?? '',
-                                legalCode: r.legalCode ?? null,
-                                script: r.script ?? ''
-                            } : { severity: 'medium', title: String(r), description: '', standard: '', savings: '', legalCode: null, script: '' }),
-                            totalSavings: analysis.totalSavings ?? 'N/A'
+                                severity: safeStr(r.severity ?? 'medium'),
+                                title: safeStr(r.title ?? ''),
+                                description: safeStr(r.description ?? ''),
+                                standard: safeStr(r.standard ?? ''),
+                                savings: safeStr(r.savings ?? ''),
+                                legalCode: r.legalCode != null ? safeStr(r.legalCode) : null,
+                                script: safeStr(r.script ?? '')
+                            } : { severity: 'medium', title: String(r ?? ''), description: '', standard: '', savings: '', legalCode: null, script: '' }),
+                            totalSavings: safeStr(analysis.totalSavings ?? 'N/A')
                         }
                     };
 
@@ -1354,7 +1363,7 @@ Best,
                                                 {(Array.isArray(selectedContract.analysis?.summary) ? selectedContract.analysis.summary : []).map((item, i) => (
                                                     <div key={i} className="flex items-start gap-3 fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
                                                         <div className="w-2 h-2 rounded-full bg-[#00FF88] mt-2 flex-shrink-0"></div>
-                                                        <p className="text-gray-700">{item}</p>
+                                                        <p className="text-gray-700">{typeof item === 'string' ? item : String((item?.text ?? item?.description ?? (item?.category ? item.category + ': ' : '') + (item?.text ?? item?.description ?? '')) || '—')}</p>
                                                     </div>
                                                 ))}
                                             </div>
