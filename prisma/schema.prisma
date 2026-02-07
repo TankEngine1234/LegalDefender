@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Case {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // User context
+  userId    String?  // If auth is added later
+  title     String
+  description String?
+  
+  // Track 1: Multimodal Evidence
+  evidenceFiles Json?  // Array of file URLs or metadata
+  diagnosis     Json?  // Stored analysis from Gemini
+  
+  // Track 2: Blockchain Proof
+  solanaSignature String? // Transaction signature proving existence
+  fileHash        String? // The SHA-256 hash stored on-chain
+  
+  // Track 3: Security & Privacy
+  encryptedData   String? // Placeholder for sensitive data encrypted at rest
+}
