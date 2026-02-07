@@ -1616,9 +1616,17 @@ ${JSON.stringify(payload)}`;
                                                         <div className="col-span-2 text-right mono">{(() => { const s = String(metric.yourValue ?? ''); return /^\d[\d,.]*$/.test(s) && !s.startsWith('$') ? '$' + s : s; })()}</div>
                                                         <div className="col-span-2 text-right mono text-gray-600">{(() => { const s = String(metric.marketAvg ?? ''); return /^\d[\d,.]*$/.test(s) && !s.startsWith('$') ? '$' + s : s; })()}</div>
                                                         <div className="col-span-2 text-center">
-                                                            <span className={`status-${metric.status} px-3 py-1 rounded-full text-sm font-semibold mono`}>
-                                                                {metric.difference}
-                                                            </span>
+                                                            {(() => {
+                                                                const status = (metric.status || '').toLowerCase();
+                                                                const diff = String(metric.difference ?? '');
+                                                                const inferred = status || (diff.includes('Market standard') || diff.includes('fair') ? 'fair' : /^\+/.test(diff) ? 'above' : /^-/.test(diff) ? 'below' : 'fair');
+                                                                const bg = inferred === 'above' ? 'bg-red-100 text-red-700' : inferred === 'below' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700';
+                                                                return (
+                                                                    <span className={`px-3 py-1.5 rounded-full text-sm font-semibold mono inline-block ${bg}`}>
+                                                                        {metric.difference}
+                                                                    </span>
+                                                                );
+                                                            })()}
                                                         </div>
                                                         <div className="col-span-3 text-sm text-gray-600">
                                                             {metric.suggestion || '—'}
