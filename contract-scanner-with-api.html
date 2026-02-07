@@ -320,7 +320,7 @@
         // INSERT YOUR GOOGLE GEMINI API KEY HERE (get from aistudio.google.com/apikey)
         // Paste between the quotes. Leave empty to use the server (.env) instead.
         // ============================================================
-        const GEMINI_API_KEY = 'AIzaSyB_lVto4qf4Hp9OfuqTBGlzFXmK8KjEuxk';
+        const GEMINI_API_KEY = 'AIzaSyD8ZTIjG_cHELAEH5-I2vnugZTWm5N7zD8';
 
         // Risk Score Gauge Component
         function RiskScoreGauge({ score, grade }) {
@@ -924,8 +924,8 @@ LEASE EXTRACTION: Monthly Rent = amount due EACH month. If contract shows TOTAL 
                 const contractPart = financialHints + contractText.slice(0, 20000 - financialHints.length);
                 const userPrompt = `Analyze this ${contractType} contract. Return valid JSON with:
 - riskScore { overall, grade, breakdown }
-- summary: 5-7 plain-English bullet points with ACTUAL values, e.g. "Rent: $975/month", "Deposit: $1,000", "Lease: 12 months". Do NOT return category headers like "Financial Terms:" with no content.
-- comparison { location, contractsAnalyzed, metrics }: Each metric MUST have label ("Monthly Rent", "Security Deposit", etc.), yourValue, marketAvg, difference, status, suggestion. Never leave label empty.
+- summary: MUST match contract type. lease: "Rent: $X/month", "Deposit: $X", "Lease: X months". freelance: "Rate: $X/hr", "Payment: Net-30", "Scope: X". job: "Salary: $X/year", "Start date: X", "Benefits: X". Do NOT use lease terms for freelance/job or vice versa.
+- comparison { location, contractsAnalyzed, metrics }: Labels MUST match contract type. lease: Monthly Rent, Security Deposit. freelance: Rate, Payment Terms. job: Base Salary, Equity. yourValue, marketAvg, difference, status, suggestion. Never leave label empty.
 - risks array, totalSavings. Each risk MUST have: title (e.g. "Late fee exceeds legal maximum"), description (what's wrong), standard (what's normal), savings, script (email with [Landlord Name]). Never leave title, description, or script empty.
 Categories: ${guidance.categories.join(', ')}. ${comparisonHint} ${leaseSearchHint}
 Return ONLY valid JSON.\n\nCONTRACT:\n${contractPart}`;
@@ -938,7 +938,7 @@ Return ONLY valid JSON.\n\nCONTRACT:\n${contractPart}`;
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    system_instruction: { parts: [{ text: 'You are an expert legal contract analyzer. Monthly Rent = amount due EACH month. If contract shows total (e.g. $11,700/12mo), divide: $975/month. NEVER use total as monthly rent. comparison.metrics must have 5-6 items with yourValue, marketAvg, difference, status, suggestion. Return only valid JSON, no markdown.' }] },
+                                    system_instruction: { parts: [{ text: 'You are an expert legal contract analyzer. Summary and comparison MUST match the contract type: lease (Rent, Deposit), freelance (Rate, Payment), or job offer (Salary, Equity). Do NOT use lease terms for freelance/job or vice versa. Return only valid JSON, no markdown.' }] },
                                     contents: [{ parts: [{ text: userPrompt }] }],
                                     generationConfig: {
                                         temperature: 0.3,
@@ -1114,7 +1114,7 @@ ${JSON.stringify(payload)}`;
                             location: safeStr(analysis.comparison?.location ?? 'N/A'),
                             contractsAnalyzed: analysis.comparison?.contractsAnalyzed ?? 0,
                             metrics: toArray(analysis.comparison?.metrics).map((m, i) => {
-                                const defaults = ['Monthly Rent', 'Security Deposit', 'Late Fee', 'Pet Deposit', 'Lease Length', 'Entry Notice'];
+                                const defaults = contractType === 'lease' ? ['Monthly Rent', 'Security Deposit', 'Late Fee', 'Pet Deposit', 'Lease Length', 'Entry Notice'] : contractType === 'freelance' ? ['Rate', 'Payment Terms', 'Revision Rounds', 'Late Payment Penalty', 'IP Ownership'] : ['Base Salary', 'Equity Grant', 'PTO Days', '401k Match', 'Vesting Schedule', 'Non-Compete Scope'];
                                 const fallbackLabel = (typeof m === 'object' && m !== null) ? (m.label ?? m.name ?? defaults[i] ?? `Metric ${i + 1}`) : defaults[i];
                                 return typeof m === 'object' && m !== null ? {
                                     label: safeStr(m.label ?? m.name ?? fallbackLabel) || fallbackLabel,
@@ -1133,7 +1133,7 @@ ${JSON.stringify(payload)}`;
                                     if (s && typeof s === 'object') return safeStr(s.text ?? s.description ?? ((s.category ? s.category + ': ' : '') + (s.text ?? s.description ?? '')));
                                     return String(s ?? '').trim();
                                 })
-                                .filter((s) => s && s.length > 3 && !/^(Financial Terms|Legal Compliance|Tenant Rights|Hidden Costs):\s*$/i.test(s)),
+                                .filter((s) => s && s.length > 3 && !/^(Financial Terms|Legal Compliance|Tenant Rights|Hidden Costs|Payment Terms|Scope Protection|IP Rights|Compensation|Benefits|Non-Compete|Equity Terms):\s*$/i.test(s)),
                             risks: toArray(analysis.risks).map((r) => typeof r === 'object' && r !== null ? {
                                 severity: safeStr(r.severity ?? 'medium'),
                                 title: safeStr(r.title ?? ''),

@@ -73,6 +73,13 @@ app.post('/api/analyze', async (req, res) => {
   };
   const comparisonInstruction = comparisonMetricsByType[contractType] || comparisonMetricsByType.lease;
 
+  const summaryByType = {
+    lease: 'summary: 5-7 bullets for LEASE/RENTAL only. E.g. "Rent: $X/month", "Deposit: $X", "Lease: X months", "Late fee: $X", "Utilities: tenant pays X". Do NOT use lease terms for other contract types.',
+    freelance: 'summary: 5-7 bullets for FREELANCE/SERVICE contracts only. E.g. "Rate: $X/hr or $X project", "Payment: Net-30", "Scope: deliverables X", "Revisions: X rounds", "IP: deliverables only". Do NOT use lease or employment terms.',
+    jobOffer: 'summary: 5-7 bullets for JOB OFFER/EMPLOYMENT only. E.g. "Salary: $X/year", "Start date: X", "Benefits: health, 401k", "PTO: X days", "Equity: X options". Do NOT use lease or freelance terms.'
+  };
+  const summaryInstruction = summaryByType[contractType] || summaryByType.lease;
+
   const userPrompt = `Analyze this ${contractType} contract and return a JSON object with this EXACT structure:
 
 {
@@ -90,8 +97,7 @@ app.post('/api/analyze', async (req, res) => {
     "location": "<infer city/state from contract or use region e.g. National>",
     "contractsAnalyzed": <number 150-300>,
     "metrics": [
-      {"label": "Monthly Rent", "yourValue": "from contract", "marketAvg": "typical", "difference": "+X% or Market standard", "status": "above/below/fair", "suggestion": "advice or null"},
-      {"label": "Security Deposit", "yourValue": "from contract", "marketAvg": "typical", "difference": "...", "status": "...", "suggestion": null}
+      {"label": "match contract type - lease: Monthly Rent/Security Deposit; freelance: Rate/Payment Terms; job: Salary/Equity", "yourValue": "from contract", "marketAvg": "typical", "difference": "...", "status": "above/below/fair", "suggestion": "advice or null"}
     ]
   },
   "summary": ["plain-English bullet with actual value 1", "bullet 2", "bullet 3"],
@@ -101,20 +107,20 @@ app.post('/api/analyze', async (req, res) => {
   "totalSavings": "e.g. $500+ annually"
 }
 
-CRITICAL - LEASE VALUE EXTRACTION:
+${contractType === 'lease' ? `CRITICAL - LEASE VALUE EXTRACTION:
 - Monthly Rent: Extract the amount due EACH month. If the contract shows a TOTAL for the lease (e.g. $11,700 for 12 months), divide: $11,700 ÷ 12 = $975/month. NEVER use the total lease amount as monthly rent. Look for "monthly rent", "rent per month", "base rent", or total ÷ number of months.
 - Security Deposit: "security deposit", "deposit", "refundable deposit"
 - Late Fee: "late fee", "late charge", "delinquency fee"
 - Pet Deposit/Fee: "pet deposit", "pet fee", "pet rent"
 - Lease Length: "term", "12 months", "month to month"
-Search every page and addendum. Extract EXACT values. Never use "Not in contract" for rent or deposit.
+Search every page and addendum. Extract EXACT values. Never use "Not in contract" for rent or deposit.` : ''}
 
 CRITICAL - Market comparison: ${comparisonInstruction}
 yourValue = EXACT value from contract. marketAvg = typical benchmark.
 
-CRITICAL - summary: Must be 5-7 plain-English bullet points with ACTUAL values, e.g. "Rent: $975/month (due on 1st)", "Security deposit: $1,000 (refundable within 30 days)", "Lease term: 12 months". Do NOT return category headers like "Financial Terms:" or "Legal Compliance:" with no content. Each summary item must include the real value/description.
+CRITICAL - summary: MUST match the contract type. ${summaryInstruction} Do NOT use lease terms (Rent, Deposit, Lease term) for freelance or job offers. Do NOT use employment terms for leases or freelance. Each summary item must include the actual value/description.
 
-CRITICAL - comparison.metrics: Each object MUST have label (e.g. "Monthly Rent", "Security Deposit", "Late Fee"), yourValue, marketAvg, difference, status, suggestion. Never leave label empty.
+CRITICAL - comparison.metrics: Labels MUST match contract type. lease: Monthly Rent, Security Deposit, Late Fee, etc. freelance: Rate, Payment Terms, Revision Rounds, etc. job: Base Salary, Equity, PTO, etc. Never leave label empty.
 
 CRITICAL - risks[]: Each risk MUST have ALL fields: title (short name of issue, e.g. "Late fee exceeds legal maximum"), description (what the contract says and why it's a problem), standard (what's normal or legal), savings (e.g. "$50 per incident"), legalCode (if applicable), script (ready-to-send email with [Landlord Name] placeholder). Never leave title, description, or standard empty.
 
