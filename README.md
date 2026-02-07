@@ -1,42 +1,36 @@
-# Contract Scanner
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Instant legal document analysis: upload a lease, freelance agreement, or job offer and get plain-English bullet points plus flagged risks and negotiation scripts.
+## Getting Started
 
-## Quick start (hackathon)
+First, run the development server:
 
-1. **Install and add your API key**
-   ```bash
-   npm install
-   cp .env.example .env
-   ```
-   Open the `.env` file and set your Gemini key (get one at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)):
-   ```
-   GEMINI_API_KEY=your-gemini-key-here
-   ```
-   Save the file. After changing the key, restart the server (Ctrl+C, then `npm start`).
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-2. **Run the app**
-   ```bash
-   npm start
-   ```
-   Open **http://localhost:3000** in your browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-3. **Use it**
-   - Drop a PDF or DOCX contract, or pick a sample.
-   - The backend extracts text, detects contract type (lease / freelance / job offer), and calls Google Gemini to analyze.
-   - You get a risk score, plain-English summary, market comparison, and copy-paste negotiation scripts.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## How it works
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-- **Frontend** (`contract-scanner-with-api.html`): PDF/DOCX upload, text extraction (pdf.js, mammoth), contract-type detection, and UI. No API key in the browser.
-- **Backend** (`server.js`): Serves the app and exposes `POST /api/analyze`. It receives `{ contractText, contractType }`, calls Google Gemini (gemini-1.5-flash), and returns the analysis JSON.
+## Learn More
 
-Your Gemini API key stays in `.env` on the server and is never sent to the client.
+To learn more about Next.js, take a look at the following resources:
 
-## Cost
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Gemini has a free tier; paid usage is low per contract. Fine for demos and light use.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## If you open the HTML file directly
+## Deploy on Vercel
 
-Uploads will hit `/api/analyze` and fail (no server). Always run `npm start` and use http://localhost:3000 for real scanning.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
