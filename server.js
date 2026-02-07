@@ -149,6 +149,44 @@ ${contractText.slice(0, 15000)}`;
   }
 });
 
+// Translate contract analysis to Spanish
+app.post('/api/translate', async (req, res) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
+  }
+  const payload = req.body;
+  if (!payload) {
+    return res.status(400).json({ error: 'Missing payload' });
+  }
+  const prompt = `Translate this contract analysis to Spanish. Return ONLY valid JSON:
+{"summary": ["translated string 1", "..."], "risks": [{"title": "...", "description": "...", "standard": "...", "savings": "...", "script": "..."}], "comparison": {"metrics": [{"label": "...", "suggestion": "..."}]}, "totalSavings": "..."}
+Keep dollar amounts, numbers, and percentages unchanged (e.g. $1,850, 30 days). Translate everything else to Spanish.
+
+INPUT JSON:
+${JSON.stringify(payload)}`;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${encodeURIComponent(apiKey)}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+      }) }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error?.message || 'Translation failed' });
+    }
+    let content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!content) return res.status(502).json({ error: 'Empty response' });
+    content = content.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    res.json(JSON.parse(content));
+  } catch (err) {
+    console.error('Translate error:', err);
+    res.status(500).json({ error: err.message || 'Translation failed' });
+  }
+});
+
 app.listen(PORT, () => {
   const hasKey = !!process.env.GEMINI_API_KEY;
   console.log(`

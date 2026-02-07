@@ -769,7 +769,62 @@ Best,
             const [showCopyFeedback, setShowCopyFeedback] = useState(false);
             const [expandedRisk, setExpandedRisk] = useState(null);
             const [activeTab, setActiveTab] = useState('overview'); // overview, comparison, risks
+            const [displayLanguage, setDisplayLanguage] = useState('en'); // en, es
+            const [translatedContract, setTranslatedContract] = useState(null);
+            const [translating, setTranslating] = useState(false);
             const fileInputRef = useRef(null);
+
+            const t = displayLanguage === 'es' ? {
+                scanAnother: '← Escanear otro',
+                potentialSavings: 'Ahorros potenciales',
+                overview: 'Resumen',
+                marketComparison: 'Comparación de mercado',
+                risks: 'Riesgos',
+                contractFairnessScore: 'Puntuación de equidad',
+                standardTerms: 'Términos estándar',
+                highRisk: 'Problemas de alto riesgo',
+                mediumRisk: 'Problemas de riesgo medio',
+                potentialSavingsLabel: 'Ahorros potenciales',
+                comparedTo: 'Comparado con',
+                similarContracts: 'contratos similares en',
+                metric: 'Métrica',
+                yourContract: 'Tu contrato',
+                marketAvg: 'Promedio del mercado',
+                difference: 'Diferencia',
+                suggestion: 'Sugerencia',
+                keyInsights: 'Ideas clave',
+                risksDetected: 'Riesgos detectados',
+                clickForScript: 'Haz clic para ver el script de negociación',
+                standard: 'Estándar',
+                savings: 'Ahorros',
+                copyEmail: 'Copiar email',
+                negotiationScript: 'Script de negociación'
+            } : {
+                scanAnother: '← Scan Another',
+                potentialSavings: 'Potential Savings',
+                overview: 'Overview',
+                marketComparison: 'Market Comparison',
+                risks: 'Risks',
+                contractFairnessScore: 'Contract Fairness Score',
+                standardTerms: 'Standard Terms',
+                highRisk: 'High Risk Issues',
+                mediumRisk: 'Medium Risk Issues',
+                potentialSavingsLabel: 'Potential Savings',
+                comparedTo: 'Compared to',
+                similarContracts: 'similar contracts in',
+                metric: 'Metric',
+                yourContract: 'Your Contract',
+                marketAvg: 'Market Avg',
+                difference: 'Difference',
+                suggestion: 'Suggestion',
+                keyInsights: 'Key Insights',
+                risksDetected: 'Risks Detected',
+                clickForScript: 'Click any risk to see negotiation script',
+                standard: 'Standard',
+                savings: 'Savings',
+                copyEmail: 'Copy Email',
+                negotiationScript: 'Negotiation Script'
+            };
 
             const handleDragOver = (e) => {
                 e.preventDefault();
@@ -903,6 +958,45 @@ Best,
                 }
             };
 
+            const translateToSpanish = async (contract) => {
+                const payload = {
+                    summary: contract.analysis?.summary ?? [],
+                    risks: (contract.analysis?.risks ?? []).map(r => ({ title: r.title, description: r.description, standard: r.standard, savings: r.savings, script: r.script })),
+                    comparison: { metrics: (contract.comparison?.metrics ?? []).map(m => ({ label: m.label, suggestion: m.suggestion })) },
+                    totalSavings: contract.analysis?.totalSavings ?? ''
+                };
+                try {
+                    if (GEMINI_API_KEY && GEMINI_API_KEY.trim()) {
+                        const prompt = `Translate this contract analysis to Spanish. Return ONLY valid JSON:
+{"summary": ["translated string 1", "..."], "risks": [{"title": "...", "description": "...", "standard": "...", "savings": "...", "script": "..."}], "comparison": {"metrics": [{"label": "...", "suggestion": "..."}]}, "totalSavings": "..."}
+Keep dollar amounts, numbers, and percentages unchanged (e.g. $1,850, 30 days). Translate everything else to Spanish.
+
+INPUT JSON:
+${JSON.stringify(payload)}`;
+                        const response = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+                            { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
+                            }) }
+                        );
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok) throw new Error(data.error?.message || 'Translation failed');
+                        let content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!content) throw new Error('Empty response');
+                        content = content.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+                        return JSON.parse(content);
+                    }
+                    const response = await fetch('/api/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Translation failed');
+                    return data;
+                } catch (err) {
+                    console.error('Translation failed:', err);
+                    return null;
+                }
+            };
+
             const processFile = async (file) => {
                 setView('loading');
                 setLoadingProgress(0);
@@ -1029,6 +1123,8 @@ Best,
                     setLoadingProgress(100);
                     await new Promise(resolve => setTimeout(resolve, 300));
                     
+                    setTranslatedContract(null);
+                    setDisplayLanguage('en');
                     setSelectedContract(formattedContract);
                     setView('results');
 
@@ -1057,6 +1153,8 @@ Best,
                         await new Promise(resolve => setTimeout(resolve, 300));
                     }
 
+                    setTranslatedContract(null);
+                    setDisplayLanguage('en');
                     setSelectedContract(SAMPLE_CONTRACTS[type]);
                     setView('results');
                 };
@@ -1073,9 +1171,36 @@ Best,
             const reset = () => {
                 setView('landing');
                 setSelectedContract(null);
+                setTranslatedContract(null);
+                setDisplayLanguage('en');
                 setExpandedRisk(null);
                 setActiveTab('overview');
             };
+
+            const displayContract = (() => {
+                if (!selectedContract) return null;
+                if (displayLanguage !== 'es' || !translatedContract) return selectedContract;
+                return {
+                    ...selectedContract,
+                    analysis: {
+                        ...selectedContract.analysis,
+                        summary: translatedContract.summary ?? selectedContract.analysis.summary,
+                        risks: (selectedContract.analysis?.risks ?? []).map((r, i) => ({
+                            ...r,
+                            ...(translatedContract.risks?.[i] ?? {})
+                        })),
+                        totalSavings: translatedContract.totalSavings ?? selectedContract.analysis.totalSavings
+                    },
+                    comparison: {
+                        ...selectedContract.comparison,
+                        metrics: (selectedContract.comparison?.metrics ?? []).map((m, i) => ({
+                            ...m,
+                            label: translatedContract.comparison?.metrics?.[i]?.label ?? m.label,
+                            suggestion: translatedContract.comparison?.metrics?.[i]?.suggestion ?? m.suggestion
+                        }))
+                    }
+                };
+            })();
 
             return (
                 <div className="min-h-screen">
@@ -1232,8 +1357,27 @@ Best,
                                             onClick={reset}
                                             className="text-gray-600 hover:text-gray-900 mono text-sm font-semibold"
                                         >
-                                            ← Scan Another
+                                            {t.scanAnother}
                                         </button>
+                                        <div className="h-6 w-px bg-gray-300"></div>
+                                        <select
+                                            value={displayLanguage}
+                                            onChange={(e) => {
+                                                const lang = e.target.value;
+                                                setDisplayLanguage(lang);
+                                                if (lang === 'es' && !translatedContract) {
+                                                    setTranslating(true);
+                                                    translateToSpanish(selectedContract).then(result => {
+                                                        setTranslatedContract(result);
+                                                        setTranslating(false);
+                                                    }).catch(() => setTranslating(false));
+                                                }
+                                            }}
+                                            className="mono text-sm font-semibold px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700"
+                                        >
+                                            <option value="en">English</option>
+                                            <option value="es">Español</option>
+                                        </select>
                                         <div className="h-6 w-px bg-gray-300"></div>
                                         <div>
                                             <h2 className="font-bold text-lg flex items-center gap-2">
@@ -1256,8 +1400,10 @@ Best,
                                             </div>
                                         </div>
                                         <div className="mono text-sm">
-                                            <span className="text-gray-600">Potential Savings:</span>
-                                            <span className="ml-2 font-bold text-[#00FF88]">{selectedContract.analysis.totalSavings}</span>
+                                            <span className="text-gray-600">{t.potentialSavings}:</span>
+                                            <span className="ml-2 font-bold text-[#00FF88]">
+                                                {translating ? '...' : (displayContract?.analysis?.totalSavings ?? selectedContract.analysis.totalSavings)}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -1271,19 +1417,19 @@ Best,
                                             className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
                                             onClick={() => setActiveTab('overview')}
                                         >
-                                            📊 Overview
+                                            📊 {t.overview}
                                         </button>
                                         <button
                                             className={`tab-button ${activeTab === 'comparison' ? 'active' : ''}`}
                                             onClick={() => setActiveTab('comparison')}
                                         >
-                                            📈 Market Comparison
+                                            📈 {t.marketComparison}
                                         </button>
                                         <button
                                             className={`tab-button ${activeTab === 'risks' ? 'active' : ''}`}
                                             onClick={() => setActiveTab('risks')}
                                         >
-                                            ⚠️ Risks ({(selectedContract.analysis?.risks ?? []).length})
+                                            ⚠️ {t.risks} ({(selectedContract.analysis?.risks ?? []).length})
                                         </button>
                                     </div>
                                 </div>
@@ -1295,7 +1441,7 @@ Best,
                                     <div className="fade-in">
                                         {/* Risk Score Dashboard */}
                                         <div className="bg-white rounded-2xl p-8 mb-8 border-2 border-gray-200">
-                                            <h3 className="text-2xl font-bold mb-8 text-center">Contract Fairness Score</h3>
+                                            <h3 className="text-2xl font-bold mb-8 text-center">{t.contractFairnessScore}</h3>
                                             
                                             <div className="grid md:grid-cols-2 gap-12 items-center">
                                                 <div>
@@ -1313,7 +1459,7 @@ Best,
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    {(Array.isArray(selectedContract.riskScore?.breakdown) ? selectedContract.riskScore.breakdown : []).map((item, i) => (
+                                                    {(Array.isArray(displayContract?.riskScore?.breakdown) ? displayContract.riskScore.breakdown : selectedContract.riskScore?.breakdown ?? []).map((item, i) => (
                                                         <div 
                                                             key={i} 
                                                             className="breakdown-card"
@@ -1357,10 +1503,10 @@ Best,
                                         <div className="bg-white rounded-2xl p-8 mb-8 border-2 border-gray-200">
                                             <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                                                 <span className="text-[#00FF88]">✓</span>
-                                                Standard Terms
+                                                {t.standardTerms}
                                             </h3>
                                             <div className="space-y-3">
-                                                {(Array.isArray(selectedContract.analysis?.summary) ? selectedContract.analysis.summary : []).map((item, i) => (
+                                                {(Array.isArray(displayContract?.analysis?.summary) ? displayContract.analysis.summary : selectedContract.analysis?.summary ?? []).map((item, i) => (
                                                     <div key={i} className="flex items-start gap-3 fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
                                                         <div className="w-2 h-2 rounded-full bg-[#00FF88] mt-2 flex-shrink-0"></div>
                                                         <p className="text-gray-700">{typeof item === 'string' ? item : String((item?.text ?? item?.description ?? (item?.category ? item.category + ': ' : '') + (item?.text ?? item?.description ?? '')) || '—')}</p>
@@ -1376,21 +1522,21 @@ Best,
                                                 <div className="stat-number text-3xl font-bold text-red-600 mb-1">
                                                     {(selectedContract.analysis?.risks ?? []).filter(r => r.severity === 'high').length}
                                                 </div>
-                                                <div className="text-sm text-red-700 font-semibold">High Risk Issues</div>
+                                                <div className="text-sm text-red-700 font-semibold">{t.highRisk}</div>
                                             </div>
                                             <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 border-2 border-yellow-200">
                                                 <div className="text-3xl mb-2">🟡</div>
                                                 <div className="stat-number text-3xl font-bold text-yellow-600 mb-1">
                                                     {(selectedContract.analysis?.risks ?? []).filter(r => r.severity === 'medium').length}
                                                 </div>
-                                                <div className="text-sm text-yellow-700 font-semibold">Medium Risk Issues</div>
+                                                <div className="text-sm text-yellow-700 font-semibold">{t.mediumRisk}</div>
                                             </div>
                                             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border-2 border-blue-200">
                                                 <div className="text-3xl mb-2">💰</div>
                                                 <div className="text-xl font-bold text-blue-600 mb-1">
-                                                    {selectedContract.analysis.totalSavings}
+                                                    {displayContract?.analysis?.totalSavings ?? selectedContract.analysis?.totalSavings}
                                                 </div>
-                                                <div className="text-sm text-blue-700 font-semibold">Potential Savings</div>
+                                                <div className="text-sm text-blue-700 font-semibold">{t.potentialSavingsLabel}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -1401,9 +1547,9 @@ Best,
                                     <div className="fade-in">
                                         <div className="bg-white rounded-2xl p-8 border-2 border-gray-200">
                                             <div className="mb-8">
-                                                <h3 className="text-2xl font-bold mb-2">Market Comparison</h3>
+                                                <h3 className="text-2xl font-bold mb-2">{t.marketComparison}</h3>
                                                 <p className="text-gray-600 mono text-sm">
-                                                    Compared to {selectedContract.comparison?.contractsAnalyzed ?? 0} similar contracts in {selectedContract.comparison?.location ?? 'N/A'}
+                                                    {t.comparedTo} {selectedContract.comparison?.contractsAnalyzed ?? 0} {t.similarContracts} {selectedContract.comparison?.location ?? 'N/A'}
                                                 </p>
                                             </div>
 
@@ -1411,15 +1557,15 @@ Best,
                                             <div className="space-y-1">
                                                 {/* Header */}
                                                 <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-lg font-semibold text-sm text-gray-600 mono">
-                                                    <div className="col-span-3">Metric</div>
-                                                    <div className="col-span-2 text-right">Your Contract</div>
-                                                    <div className="col-span-2 text-right">Market Avg</div>
-                                                    <div className="col-span-2 text-center">Difference</div>
-                                                    <div className="col-span-3">Suggestion</div>
+                                                    <div className="col-span-3">{t.metric}</div>
+                                                    <div className="col-span-2 text-right">{t.yourContract}</div>
+                                                    <div className="col-span-2 text-right">{t.marketAvg}</div>
+                                                    <div className="col-span-2 text-center">{t.difference}</div>
+                                                    <div className="col-span-3">{t.suggestion}</div>
                                                 </div>
 
                                                 {/* Data Rows */}
-                                                {selectedContract.comparison.metrics.map((metric, i) => (
+                                                {(displayContract?.comparison?.metrics ?? selectedContract.comparison.metrics).map((metric, i) => (
                                                     <div 
                                                         key={i}
                                                         className="comparison-row grid grid-cols-12 gap-4 px-4 py-4 rounded-lg border border-gray-100"
@@ -1451,10 +1597,10 @@ Best,
                                             <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200">
                                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                                     <span>💡</span>
-                                                    Key Insights
+                                                    {t.keyInsights}
                                                 </h4>
                                                 <div className="space-y-2 text-sm">
-                                                    {selectedContract.comparison.metrics
+                                                    {(displayContract?.comparison?.metrics ?? selectedContract.comparison.metrics)
                                                         .filter(m => m.status === 'above' || m.status === 'below')
                                                         .map((m, i) => (
                                                             <div key={i} className="flex items-start gap-2">
@@ -1476,12 +1622,12 @@ Best,
                                         {/* Risks Section */}
                                         <div className="mb-8">
                                             <h3 className="text-3xl font-bold mb-2">
-                                                Risks Detected ({(selectedContract.analysis?.risks ?? []).length})
+                                                {t.risksDetected} ({(selectedContract.analysis?.risks ?? []).length})
                                             </h3>
-                                            <p className="text-gray-600 mb-6">Click any risk to see negotiation script</p>
+                                            <p className="text-gray-600 mb-6">{t.clickForScript}</p>
                                             
                                             <div className="space-y-4">
-                                                {(Array.isArray(selectedContract.analysis?.risks) ? selectedContract.analysis.risks : []).map((risk, i) => {
+                                                {(Array.isArray(displayContract?.analysis?.risks) ? displayContract.analysis.risks : selectedContract.analysis?.risks ?? []).map((risk, i) => {
                                                     const isExpanded = expandedRisk === i;
                                                     const severityClass = risk.severity === 'high' ? 'risk-high' : risk.severity === 'medium' ? 'risk-medium' : 'risk-low';
                                                     
@@ -1504,11 +1650,11 @@ Best,
                                                                         <p className="text-gray-700 mb-3">{risk.description}</p>
                                                                         <div className="flex items-center gap-6 text-sm">
                                                                             <div>
-                                                                                <span className="text-gray-500 mono">Standard:</span>
+                                                                                <span className="text-gray-500 mono">{t.standard}:</span>
                                                                                 <span className="ml-2 text-gray-900">{risk.standard}</span>
                                                                             </div>
                                                                             <div>
-                                                                                <span className="text-gray-500 mono">Savings:</span>
+                                                                                <span className="text-gray-500 mono">{t.savings}:</span>
                                                                                 <span className="ml-2 font-bold text-[#00FF88]">{risk.savings}</span>
                                                                             </div>
                                                                         </div>
@@ -1525,7 +1671,7 @@ Best,
                                                             {isExpanded && (
                                                                 <div className="border-t border-gray-200 p-6 bg-gray-50 fade-in">
                                                                     <div className="flex items-center justify-between mb-4">
-                                                                        <h5 className="font-bold text-lg">📧 Negotiation Script</h5>
+                                                                        <h5 className="font-bold text-lg">📧 {t.negotiationScript}</h5>
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
@@ -1533,7 +1679,7 @@ Best,
                                                                             }}
                                                                             className="mono bg-[#00D9FF] text-white px-6 py-2 rounded-lg font-semibold text-sm hover:shadow-lg"
                                                                         >
-                                                                            Copy Email
+                                                                            {t.copyEmail}
                                                                         </button>
                                                                     </div>
                                                                     <div className="script-box p-6 rounded-xl">
