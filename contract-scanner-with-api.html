@@ -884,6 +884,16 @@ Best,
                 return result.value;
             };
 
+            const extractFinancialHints = (text) => {
+                if (!text || text.length < 100) return '';
+                const lines = text.split(/\n+/).filter(l => l.trim().length > 5);
+                const keywords = /rent|deposit|fee|charge|payment|monthly|\$\d|price/i;
+                const dollar = /\$\s*\d[\d,.]*/;
+                const hints = lines.filter(l => (keywords.test(l) && dollar.test(l)) || (l.match(dollar) && l.length < 120)).slice(0, 30);
+                if (hints.length === 0) return '';
+                return 'POTENTIAL FINANCIAL TERMS (extract from these lines):\n' + hints.map(l => l.trim().substring(0, 150)).join('\n') + '\n\n--- FULL CONTRACT ---\n';
+            };
+
             const detectContractType = (text) => {
                 const lowerText = text.toLowerCase();
                 if (lowerText.includes('landlord') || lowerText.includes('tenant') || lowerText.includes('lease')) {
@@ -903,12 +913,22 @@ Best,
                     jobOffer: { categories: ['Compensation', 'Benefits', 'Non-Compete', 'Equity Terms'], issues: 'non-compete scope, equity vesting, PTO, salary benchmarks' }
                 };
                 const guidance = typeGuidance[contractType] || typeGuidance.lease;
+                const leaseSearchHint = contractType === 'lease' ? `
+LEASE EXTRACTION: Monthly Rent = amount due EACH month. If contract shows TOTAL for lease (e.g. $11,700 for 12 months), divide: $11,700÷12=$975/month. NEVER use total as monthly rent. Extract deposit, late fee, pet fee. Do NOT use "Not in contract" for rent or deposit.` : '';
                 const comparisonHint = contractType === 'lease'
-                    ? 'comparison.metrics: 5-6 items - Monthly Rent, Security Deposit, Late Fee, Pet Deposit, Lease Length, Entry Notice. For each: label, yourValue (from contract), marketAvg (typical), difference, status (above/below/fair), suggestion.'
+                    ? 'comparison.metrics: 5-6 items - Monthly Rent (yourValue=MONTHLY only, divide total by months if needed), Security Deposit, Late Fee, Pet Deposit, Lease Length, Entry Notice. Each needs yourValue, marketAvg, difference, status, suggestion.'
                     : contractType === 'freelance'
-                        ? 'comparison.metrics: 5-6 items - Rate, Payment Terms, Revision Rounds, Late Payment Penalty, IP Ownership. yourValue from contract, marketAvg typical.'
-                        : 'comparison.metrics: 5-6 items - Base Salary, Equity, PTO, 401k Match, Vesting, Non-Compete. yourValue from contract, marketAvg typical.';
-                const userPrompt = `Analyze this ${contractType} contract. Return valid JSON with: riskScore { overall, grade, breakdown }, comparison { location, contractsAnalyzed, metrics }, summary array, risks array, totalSavings. Categories: ${guidance.categories.join(', ')}. ${comparisonHint} yourValue MUST be the EXACT value from the contract text (e.g. "$1,850", "30 days"). NEVER use "not specified" or "obfuscated"—extract real values. If a term is absent, use "Not in contract". Return ONLY valid JSON.\n\nCONTRACT:\n${contractText.slice(0, 10000)}`;
+                        ? 'comparison.metrics: 5-6 items - Rate, Payment Terms, Revision Rounds, Late Payment Penalty, IP Ownership.'
+                        : 'comparison.metrics: 5-6 items - Base Salary, Equity, PTO, 401k Match, Vesting, Non-Compete.';
+                const financialHints = contractType === 'lease' ? extractFinancialHints(contractText) : '';
+                const contractPart = financialHints + contractText.slice(0, 20000 - financialHints.length);
+                const userPrompt = `Analyze this ${contractType} contract. Return valid JSON with:
+- riskScore { overall, grade, breakdown }
+- summary: 5-7 plain-English bullet points with ACTUAL values, e.g. "Rent: $975/month", "Deposit: $1,000", "Lease: 12 months". Do NOT return category headers like "Financial Terms:" with no content.
+- comparison { location, contractsAnalyzed, metrics }: Each metric MUST have label ("Monthly Rent", "Security Deposit", etc.), yourValue, marketAvg, difference, status, suggestion. Never leave label empty.
+- risks array, totalSavings. Each risk MUST have: title (e.g. "Late fee exceeds legal maximum"), description (what's wrong), standard (what's normal), savings, script (email with [Landlord Name]). Never leave title, description, or script empty.
+Categories: ${guidance.categories.join(', ')}. ${comparisonHint} ${leaseSearchHint}
+Return ONLY valid JSON.\n\nCONTRACT:\n${contractPart}`;
 
                 if (GEMINI_API_KEY && GEMINI_API_KEY.trim()) {
                     try {
@@ -918,7 +938,7 @@ Best,
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    system_instruction: { parts: [{ text: 'You are an expert legal contract analyzer. Extract EXACT values from the contract—if rent is $1,850, write "$1,850". NEVER use "not specified", "obfuscated", or placeholders. If a term is not in the contract, use "Not in contract". Return only valid JSON, no markdown.' }] },
+                                    system_instruction: { parts: [{ text: 'You are an expert legal contract analyzer. Monthly Rent = amount due EACH month. If contract shows total (e.g. $11,700/12mo), divide: $975/month. NEVER use total as monthly rent. comparison.metrics must have 5-6 items with yourValue, marketAvg, difference, status, suggestion. Return only valid JSON, no markdown.' }] },
                                     contents: [{ parts: [{ text: userPrompt }] }],
                                     generationConfig: {
                                         temperature: 0.3,
@@ -944,10 +964,11 @@ Best,
                 }
 
                 try {
+                    const textToSend = contractType === 'lease' ? (extractFinancialHints(contractText) + contractText) : contractText;
                     const response = await fetch('/api/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contractText, contractType })
+                        body: JSON.stringify({ contractText: textToSend.slice(0, 35000), contractType })
                     });
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error || 'API error');
@@ -1092,21 +1113,27 @@ ${JSON.stringify(payload)}`;
                         comparison: {
                             location: safeStr(analysis.comparison?.location ?? 'N/A'),
                             contractsAnalyzed: analysis.comparison?.contractsAnalyzed ?? 0,
-                            metrics: toArray(analysis.comparison?.metrics).map((m) => typeof m === 'object' && m !== null ? {
-                                label: safeStr(m.label ?? m.name ?? ''),
-                                yourValue: safeStr(m.yourValue ?? m.your ?? '—'),
-                                marketAvg: safeStr(m.marketAvg ?? m.market ?? '—'),
-                                difference: safeStr(m.difference ?? '—'),
-                                status: safeStr(m.status ?? 'fair'),
-                                suggestion: m.suggestion != null ? safeStr(m.suggestion) : null
-                            } : { label: '', yourValue: '—', marketAvg: '—', difference: '—', status: 'fair', suggestion: null })
+                            metrics: toArray(analysis.comparison?.metrics).map((m, i) => {
+                                const defaults = ['Monthly Rent', 'Security Deposit', 'Late Fee', 'Pet Deposit', 'Lease Length', 'Entry Notice'];
+                                const fallbackLabel = (typeof m === 'object' && m !== null) ? (m.label ?? m.name ?? defaults[i] ?? `Metric ${i + 1}`) : defaults[i];
+                                return typeof m === 'object' && m !== null ? {
+                                    label: safeStr(m.label ?? m.name ?? fallbackLabel) || fallbackLabel,
+                                    yourValue: safeStr(m.yourValue ?? m.your ?? '—'),
+                                    marketAvg: safeStr(m.marketAvg ?? m.market ?? '—'),
+                                    difference: safeStr(m.difference ?? '—'),
+                                    status: safeStr(m.status ?? 'fair'),
+                                    suggestion: m.suggestion != null ? safeStr(m.suggestion) : null
+                                } : { label: defaults[i] ?? `Metric ${i + 1}`, yourValue: '—', marketAvg: '—', difference: '—', status: 'fair', suggestion: null };
+                            })
                         },
                         analysis: {
-                            summary: toArray(analysis.summary).map((s) => {
-                                if (typeof s === 'string') return s;
-                                if (s && typeof s === 'object') return safeStr(s.text ?? s.description ?? ((s.category ? s.category + ': ' : '') + (s.text ?? s.description ?? '')));
-                                return (String(s ?? '').trim() || '—');
-                            }),
+                            summary: toArray(analysis.summary)
+                                .map((s) => {
+                                    if (typeof s === 'string') return s.trim();
+                                    if (s && typeof s === 'object') return safeStr(s.text ?? s.description ?? ((s.category ? s.category + ': ' : '') + (s.text ?? s.description ?? '')));
+                                    return String(s ?? '').trim();
+                                })
+                                .filter((s) => s && s.length > 3 && !/^(Financial Terms|Legal Compliance|Tenant Rights|Hidden Costs):\s*$/i.test(s)),
                             risks: toArray(analysis.risks).map((r) => typeof r === 'object' && r !== null ? {
                                 severity: safeStr(r.severity ?? 'medium'),
                                 title: safeStr(r.title ?? ''),
@@ -1572,8 +1599,8 @@ ${JSON.stringify(payload)}`;
                                                         style={{ animationDelay: `${i * 0.05}s` }}
                                                     >
                                                         <div className="col-span-3 font-semibold">{metric.label}</div>
-                                                        <div className="col-span-2 text-right mono">{metric.yourValue}</div>
-                                                        <div className="col-span-2 text-right mono text-gray-600">{metric.marketAvg}</div>
+                                                        <div className="col-span-2 text-right mono">{(() => { const s = String(metric.yourValue ?? ''); return /^\d[\d,.]*$/.test(s) && !s.startsWith('$') ? '$' + s : s; })()}</div>
+                                                        <div className="col-span-2 text-right mono text-gray-600">{(() => { const s = String(metric.marketAvg ?? ''); return /^\d[\d,.]*$/.test(s) && !s.startsWith('$') ? '$' + s : s; })()}</div>
                                                         <div className="col-span-2 text-center">
                                                             <span className={`status-${metric.status} px-3 py-1 rounded-full text-sm font-semibold mono`}>
                                                                 {metric.difference}
@@ -1646,16 +1673,16 @@ ${JSON.stringify(payload)}`;
                                                                         {risk.severity}
                                                                     </div>
                                                                     <div className="flex-1">
-                                                                        <h4 className="font-bold text-xl mb-2">{risk.title}</h4>
-                                                                        <p className="text-gray-700 mb-3">{risk.description}</p>
+                                                                        <h4 className="font-bold text-xl mb-2">{risk.title || `Issue ${i + 1}`}</h4>
+                                                                        <p className="text-gray-700 mb-3">{risk.description || risk.title || '—'}</p>
                                                                         <div className="flex items-center gap-6 text-sm">
                                                                             <div>
                                                                                 <span className="text-gray-500 mono">{t.standard}:</span>
-                                                                                <span className="ml-2 text-gray-900">{risk.standard}</span>
+                                                                                <span className="ml-2 text-gray-900">{risk.standard || '—'}</span>
                                                                             </div>
                                                                             <div>
                                                                                 <span className="text-gray-500 mono">{t.savings}:</span>
-                                                                                <span className="ml-2 font-bold text-[#00FF88]">{risk.savings}</span>
+                                                                                <span className="ml-2 font-bold text-[#00FF88]">{risk.savings || '—'}</span>
                                                                             </div>
                                                                         </div>
                                                                         {risk.legalCode && (

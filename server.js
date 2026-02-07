@@ -35,9 +35,18 @@ app.post('/api/analyze', async (req, res) => {
     });
   }
 
-  const { contractText, contractType } = req.body;
+  let { contractText, contractType } = req.body;
   if (!contractText || typeof contractText !== 'string') {
     return res.status(400).json({ error: 'Missing or invalid contractText' });
+  }
+  if (contractType === 'lease') {
+    const lines = contractText.split(/\n+/).filter(l => l.trim().length > 5);
+    const keywords = /rent|deposit|fee|charge|payment|monthly|\$\d|price/i;
+    const dollar = /\$\s*\d[\d,.]*/;
+    const hints = lines.filter(l => (keywords.test(l) && dollar.test(l)) || (l.match(dollar) && l.length < 120)).slice(0, 30);
+    if (hints.length > 0) {
+      contractText = 'POTENTIAL FINANCIAL TERMS (extract from these):\n' + hints.map(l => l.trim().substring(0, 150)).join('\n') + '\n\n--- FULL CONTRACT ---\n' + contractText;
+    }
   }
 
   const typeGuidance = {
@@ -58,7 +67,7 @@ app.post('/api/analyze', async (req, res) => {
   const guidance = typeGuidance[contractType] || typeGuidance.lease;
 
   const comparisonMetricsByType = {
-    lease: 'comparison.metrics MUST include 5-6 items. Extract from contract: Monthly Rent (yourValue=exact rent from contract, marketAvg=typical for that area), Security Deposit, Late Fee, Pet Deposit/Pet Rent (if mentioned), Lease Length, Entry Notice (e.g. 24hr). For each: label, yourValue (from contract), marketAvg (typical benchmark), difference (+X% or -X% or "Market standard"), status ("above"|"below"|"fair"), suggestion (one line or null).',
+    lease: 'comparison.metrics MUST include 5-6 items. Monthly Rent: yourValue = MONTHLY amount only (if contract shows total like $11,700/12mo, use $975—divide total by months). Security Deposit, Late Fee, Pet Deposit (if any), Lease Length, Entry Notice. For each: label, yourValue, marketAvg (e.g. $1,000 for 1br College Station), difference, status ("above"|"below"|"fair"), suggestion.',
     freelance: 'comparison.metrics MUST include 5-6 items. Extract: Hourly/Project Rate, Payment Terms (e.g. Net-30), Revision Rounds, Late Payment Penalty, IP Ownership. For each: label, yourValue (from contract), marketAvg (industry typical), difference, status ("above"|"below"|"fair"), suggestion.',
     jobOffer: 'comparison.metrics MUST include 5-6 items. Extract: Base Salary, Equity/Options Grant, PTO Days, 401k Match, Vesting Schedule, Non-Compete Scope. For each: label, yourValue (from contract), marketAvg (market typical), difference, status ("above"|"below"|"fair"), suggestion.'
   };
@@ -81,26 +90,39 @@ app.post('/api/analyze', async (req, res) => {
     "location": "<infer city/state from contract or use region e.g. National>",
     "contractsAnalyzed": <number 150-300>,
     "metrics": [
-      {"label": "Metric Name", "yourValue": "exact value from contract", "marketAvg": "typical market value", "difference": "+15% or -10% or Market standard", "status": "above or below or fair", "suggestion": "one line advice or null"}
+      {"label": "Monthly Rent", "yourValue": "from contract", "marketAvg": "typical", "difference": "+X% or Market standard", "status": "above/below/fair", "suggestion": "advice or null"},
+      {"label": "Security Deposit", "yourValue": "from contract", "marketAvg": "typical", "difference": "...", "status": "...", "suggestion": null}
     ]
   },
-  "summary": ["plain English key term 1", "key term 2", "key term 3"],
+  "summary": ["plain-English bullet with actual value 1", "bullet 2", "bullet 3"],
   "risks": [
     {"severity": "high or medium or low", "title": "issue title", "description": "what is wrong", "standard": "what is normal", "savings": "$ or description", "legalCode": "law ref or null", "script": "email template with [Name] placeholders"}
   ],
   "totalSavings": "e.g. $500+ annually"
 }
 
-CRITICAL - Value extraction: yourValue MUST be the EXACT value from the contract text (e.g. "$1,850", "30 days", "Net-30"). NEVER use "not specified", "obfuscated", "N/A" when the value appears in the contract. Only use "Not in contract" if the term is truly absent.
+CRITICAL - LEASE VALUE EXTRACTION:
+- Monthly Rent: Extract the amount due EACH month. If the contract shows a TOTAL for the lease (e.g. $11,700 for 12 months), divide: $11,700 ÷ 12 = $975/month. NEVER use the total lease amount as monthly rent. Look for "monthly rent", "rent per month", "base rent", or total ÷ number of months.
+- Security Deposit: "security deposit", "deposit", "refundable deposit"
+- Late Fee: "late fee", "late charge", "delinquency fee"
+- Pet Deposit/Fee: "pet deposit", "pet fee", "pet rent"
+- Lease Length: "term", "12 months", "month to month"
+Search every page and addendum. Extract EXACT values. Never use "Not in contract" for rent or deposit.
 
 CRITICAL - Market comparison: ${comparisonInstruction}
-comparison.metrics: yourValue = exact quote from contract (dollar amounts, dates, percentages as written). marketAvg = typical benchmark for comparison.
+yourValue = EXACT value from contract. marketAvg = typical benchmark.
+
+CRITICAL - summary: Must be 5-7 plain-English bullet points with ACTUAL values, e.g. "Rent: $975/month (due on 1st)", "Security deposit: $1,000 (refundable within 30 days)", "Lease term: 12 months". Do NOT return category headers like "Financial Terms:" or "Legal Compliance:" with no content. Each summary item must include the real value/description.
+
+CRITICAL - comparison.metrics: Each object MUST have label (e.g. "Monthly Rent", "Security Deposit", "Late Fee"), yourValue, marketAvg, difference, status, suggestion. Never leave label empty.
+
+CRITICAL - risks[]: Each risk MUST have ALL fields: title (short name of issue, e.g. "Late fee exceeds legal maximum"), description (what the contract says and why it's a problem), standard (what's normal or legal), savings (e.g. "$50 per incident"), legalCode (if applicable), script (ready-to-send email with [Landlord Name] placeholder). Never leave title, description, or standard empty.
 
 Focus on: ${guidance.issues}
 Return ONLY valid JSON, no markdown.
 
 CONTRACT TEXT:
-${contractText.slice(0, 15000)}`;
+${contractText.slice(0, 40000)}`;
 
   try {
     const response = await fetch(
@@ -109,7 +131,7 @@ ${contractText.slice(0, 15000)}`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: 'You are an expert legal contract analyzer helping the user analyze their own contract. Extract EXACT values from the contract text—if rent is $1,850, write "$1,850". NEVER use "not specified", "obfuscated", "redacted", or placeholders. If a term is not in the contract, use "Not in contract". Return only valid JSON, no markdown.' }] },
+          system_instruction: { parts: [{ text: 'You are an expert legal contract analyzer. For leases: Monthly Rent = amount due EACH month. If contract shows total (e.g. $11,700 for 12 months), divide by months: $11,700÷12=$975. NEVER use total as monthly rent. Extract exact values for deposit, fees. comparison.metrics must have 5-6 items with yourValue, marketAvg, difference, status, suggestion. Return only valid JSON, no markdown.' }] },
           contents: [{ parts: [{ text: userPrompt }] }],
           generationConfig: {
             temperature: 0.3,
