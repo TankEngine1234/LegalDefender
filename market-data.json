@@ -1,0 +1,53 @@
+{
+  "college-station": {
+    "location": "College Station, TX",
+    "source": "Apartments.com, Zumper, Redfin, HomeAdvisor, Glassdoor, Indeed (Feb 2026)",
+    
+    "rental": {
+      "rent_studio": 1050,
+      "rent_1br": 1070,
+      "rent_2br": 1240,
+      "rent_3br": 1490,
+      "rent_4br": 2200,
+      "rent_5br": 2800,
+      "rent_6br": 3400,
+      "late_fee_avg": 35,
+      "pet_fee_one_time": 300,
+      "pet_monthly": 25,
+      "deposit_avg": 1000,
+      "deposit_note": "Typically 1 month's rent",
+      "notice_days": 45,
+      "notice_note": "Texas minimum for month-to-month",
+      "maintenance_sla": "48 hours",
+      "entry_notice_hours": 24,
+      "lease_length_months": 12,
+      "application_fee_avg": 50,
+      "parking_fee_monthly": 75
+    },
+    
+    "freelance": {
+      "lawn_mowing_monthly": 120,
+      "ac_service_call": 150,
+      "plumber_hourly": 95,
+      "electrician_hourly": 85,
+      "late_payment_penalty": "1.5% monthly",
+      "cancellation_notice": "24 hours",
+      "revision_rounds_typical": 2,
+      "payment_terms_typical": "Net-30"
+    },
+    
+    "employment": {
+      "hourly_min_wage": 12.5,
+      "internship_monthly_stipend": 1200,
+      "signing_bonus_threshold": 5000,
+      "non_compete_years_avg": 1,
+      "relocation_assistance_avg": 2000,
+      "probation_period_months": 3,
+      "pto_days_typical": 15,
+      "pto_note": "Entry-level to mid",
+      "salary_software_engineer_jr": 75000,
+      "salary_software_engineer_mid": 95000,
+      "401k_match_typical": "4%"
+    }
+  }
+}
