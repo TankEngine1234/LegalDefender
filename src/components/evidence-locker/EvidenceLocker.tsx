@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Upload, FileText, CheckCircle, ExternalLink, Shield, Loader, Key, AlertTriangle, Scale } from 'lucide-react';
 import { Connection, PublicKey, Transaction, Keypair, sendAndConfirmTransaction, TransactionInstruction } from '@solana/web3.js';
+import { Buffer } from 'buffer';
 
 // --- Types ---
 type LockerStep = 'upload' | 'hashing' | 'securing' | 'complete' | 'error';
@@ -69,11 +70,11 @@ export default function EvidenceLocker() {
             // Memo Program ID: MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcQb
             const memoProgramId = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcQb");
 
-            const memoData = new TextEncoder().encode(`LegalDefender Proof: ${hash} | File: ${file.name}`);
+            const memoData = new TextEncoder().encode(hash);
             const instruction = new TransactionInstruction({
                 keys: [],
                 programId: memoProgramId,
-                data: memoData,
+                data: Buffer.from(memoData), // Fix: Convert Uint8Array to Buffer
             });
 
             const transaction = new Transaction().add(instruction);
@@ -123,144 +124,167 @@ export default function EvidenceLocker() {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto p-4">
+        <div className="w-full max-w-5xl mx-auto p-6">
             <AnimatePresence mode="wait">
                 {step === 'upload' && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                        className="glass p-12 rounded-3xl shadow-sm hover:shadow-md transition-shadow text-center"
+                        layout
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.3 }}
+                        className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden"
                     >
-                        <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                            <Lock className="w-12 h-12 text-[var(--success)]" />
-                        </div>
-                        <h2 className="text-4xl font-serif font-bold mb-6 text-[var(--primary)]">Secure Evidence Locker</h2>
-                        <p className="text-[var(--text-secondary)] mb-10 max-w-lg mx-auto text-lg leading-relaxed">
-                            Upload photos, videos, or documents. We'll generate a unique cryptographic hash and store it on the Solana blockchain, effectively notarizing your evidence forever.
-                        </p>
-
-                        <div className="max-w-xl mx-auto border-3 border-dashed border-[var(--border)] rounded-3xl p-10 hover:border-[var(--success)] hover:bg-green-50/10 transition-all cursor-pointer relative group">
-                            <input
-                                type="file"
-                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                                onChange={handleFileChange}
-                            />
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                                <Upload className="w-8 h-8 text-[var(--success)]" />
+                        <div className="p-12 text-center">
+                            <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-slate-100 shadow-sm">
+                                <Lock className="w-10 h-10 text-slate-700" />
                             </div>
-                            <p className="font-medium text-xl mb-2 text-[var(--primary)]">
-                                {file ? file.name : "Drop file here or click to upload"}
+                            <h2 className="text-3xl font-bold mb-4 text-slate-900 tracking-tight">Immutable Evidence Locker</h2>
+                            <p className="text-slate-500 mb-10 max-w-lg mx-auto text-lg">
+                                Securely notarize your files on the Solana blockchain.
+                                <span className="block text-sm mt-2 text-slate-400">Generates a permanent, tamper-proof cryptographic proof.</span>
                             </p>
-                            {file ? (
-                                <p className="text-sm text-[var(--success)] mt-2 font-mono flex items-center justify-center gap-2">
-                                    <CheckCircle className="w-4 h-4" /> {(file.size / 1024 / 1024).toFixed(2)} MB Ready
+
+                            <div className="max-w-xl mx-auto border-2 border-dashed border-slate-300 rounded-xl p-12 transition-all hover:border-slate-800 hover:bg-slate-50 group relative cursor-pointer">
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                    onChange={handleFileChange}
+                                />
+                                <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                    <Upload className="w-8 h-8 text-slate-600" />
+                                </div>
+                                <p className="font-semibold text-lg mb-2 text-slate-900">
+                                    {file ? file.name : "Drag & drop or click to upload"}
                                 </p>
-                            ) : (
-                                <p className="text-[var(--text-secondary)]">Supports Images, Videos, PDFs</p>
+                                {file ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-mono border border-emerald-100"
+                                    >
+                                        <CheckCircle className="w-3 h-3" /> Ready to Hash
+                                    </motion.div>
+                                ) : (
+                                    <p className="text-slate-400 text-sm">Supports Images, Videos, PDFs</p>
+                                )}
+                            </div>
+
+                            <div className="mt-10 flex justify-center">
+                                <button
+                                    onClick={secureOnChain}
+                                    disabled={!file}
+                                    className="group relative px-8 py-4 bg-slate-900 text-white rounded-xl font-medium text-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <Shield className="w-5 h-5" />
+                                        Secure on Blockchain
+                                    </span>
+                                </button>
+                            </div>
+
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="mt-6 p-4 bg-red-50 text-red-600 rounded-lg flex items-center justify-center gap-2 text-sm border border-red-100"
+                                >
+                                    <AlertTriangle className="w-4 h-4" />
+                                    {error}
+                                </motion.div>
                             )}
                         </div>
-
-                        <button
-                            onClick={secureOnChain}
-                            disabled={!file}
-                            className="mt-10 px-12 py-5 bg-[var(--success)] text-white rounded-2xl font-bold text-xl hover:bg-[#2ecc71] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_10px_40px_-10px_rgba(46,204,113,0.5)] hover:shadow-[0_20px_40px_-10px_rgba(46,204,113,0.6)] hover:-translate-y-1"
-                        >
-                            Secure on Blockchain
-                        </button>
-                        {error && (
-                            <div className="mt-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center justify-center gap-2 animate-fade-in">
-                                <AlertTriangle className="w-5 h-5" />
-                                {error}
-                            </div>
-                        )}
                     </motion.div>
                 )}
 
                 {(step === 'hashing' || step === 'securing') && (
                     <motion.div
+                        key="loading"
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center min-h-[60vh] text-center"
+                        className="flex flex-col items-center justify-center min-h-[50vh] text-center"
                     >
-                        <div className="w-32 h-32 mb-8 relative">
-                            <div className="absolute inset-0 border-8 border-[var(--border)] rounded-full opacity-30"></div>
-                            <div className="absolute inset-0 border-8 border-[var(--success)] rounded-full border-t-transparent animate-spin"></div>
-                            <Shield className="absolute inset-0 m-auto w-12 h-12 text-[var(--success)] animate-pulse" />
+                        <div className="w-24 h-24 mb-8 relative">
+                            <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-slate-900 rounded-full border-t-transparent animate-spin"></div>
+                            <Shield className="absolute inset-0 m-auto w-8 h-8 text-slate-900" />
                         </div>
-                        <h2 className="text-4xl font-bold mb-4 text-[var(--primary)]">{step === 'hashing' ? 'Hashing Evidence...' : 'Minting Proof...'}</h2>
-                        <div className="space-y-2">
-                            <p className="text-[var(--text-secondary)] font-mono animate-pulse">{statusMsg}</p>
-                            <p className="text-sm text-[var(--text-secondary)] opacity-60">This may take a few seconds on Devnet.</p>
+                        <h2 className="text-2xl font-bold mb-2 text-slate-900">
+                            {step === 'hashing' ? 'Generating Hash...' : 'Minting Proof...'}
+                        </h2>
+                        <div className="space-y-1">
+                            <p className="text-slate-500 font-mono text-sm animate-pulse">{statusMsg}</p>
                         </div>
                     </motion.div>
                 )}
 
                 {step === 'complete' && record && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-[2rem] overflow-hidden border border-[var(--border)] shadow-2xl max-w-3xl mx-auto relative"
+                        key="complete"
+                        layout
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xl max-w-3xl mx-auto"
                     >
-                        {/* Certificate Border Effect */}
-                        <div className="absolute inset-2 border-2 border-[#d4af37]/20 rounded-[1.5rem] pointer-events-none z-20"></div>
-
-                        {/* Certificate Header */}
-                        <div className="bg-[#1a1f36] text-[#d4af37] p-10 text-center relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-full opacity-5 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-                            <Shield className="w-20 h-20 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
-                            <h2 className="text-5xl font-serif font-bold tracking-wider mb-2 text-transparent bg-clip-text bg-gradient-to-b from-[#fadd7e] to-[#d4af37]">CERTIFICATE OF AUTHENTICITY</h2>
-                            <p className="text-sm tracking-[0.3em] opacity-80 uppercase mt-4 font-bold">LegalDefender Digital Notary</p>
+                        {/* Technical Header */}
+                        <div className="bg-slate-900 text-white p-8 border-b border-slate-800 flex justify-between items-start">
+                            <div>
+                                <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs uppercase tracking-widest mb-2">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                                    Verified On-Chain
+                                </div>
+                                <h2 className="text-3xl font-bold tracking-tight">Digital Authenticity Record</h2>
+                            </div>
+                            <Shield className="w-12 h-12 text-slate-700" />
                         </div>
 
-                        {/* Certificate Body */}
-                        <div className="p-12 space-y-10 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-gray-50 via-white to-white relative">
-                            {/* Watermark */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none">
-                                <Scale className="w-96 h-96" />
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-10 relative z-10">
-                                <div>
-                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2 font-bold">Evidence File</div>
-                                    <div className="font-serif text-2xl text-[var(--primary)] flex items-center gap-3 border-b border-gray-100 pb-2">
-                                        <FileText className="w-6 h-6 text-[var(--text-secondary)]" /> {record.fileName}
+                        {/* Data Body */}
+                        <div className="p-8 space-y-8 bg-slate-50/50">
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+                                    <div className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">File Name</div>
+                                    <div className="font-medium text-slate-900 flex items-center gap-2 truncate">
+                                        <FileText className="w-4 h-4 text-slate-400" /> {record.fileName}
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-2 font-bold">Timestamp</div>
-                                    <div className="font-mono text-lg text-[var(--primary)] border-b border-gray-100 pb-2">{record.timestamp}</div>
+                                <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
+                                    <div className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">Notarization Time</div>
+                                    <div className="font-mono text-sm text-slate-900">{record.timestamp}</div>
                                 </div>
                             </div>
 
-                            <div className="relative z-10">
-                                <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-3 font-bold">Cryptographic Hash (SHA-256)</div>
-                                <div className="bg-gray-50 p-6 rounded-xl font-mono text-sm break-all border border-gray-200 text-gray-700 shadow-inner">
+                            <div className="p-6 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                <div className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-3 flex items-center gap-2">
+                                    <Key className="w-3 h-3" /> SHA-256 Fingerprint
+                                </div>
+                                <div className="font-mono text-xs text-slate-600 break-all bg-slate-50 p-4 rounded-lg border border-slate-100">
                                     {record.fileHash}
                                 </div>
                             </div>
 
-                            <div className="relative z-10">
-                                <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] mb-3 font-bold flex items-center gap-2">
-                                    <Key className="w-4 h-4" /> Blockchain Signature (Solana)
+                            <div className="p-6 bg-blue-50/30 rounded-xl border border-blue-100">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="text-xs uppercase tracking-wider text-blue-800/60 font-bold flex items-center gap-2">
+                                        Solana Network Proof
+                                    </div>
+                                    <img src="/solana-logo-placeholder.png" alt="" className="h-4 opacity-50" />
                                 </div>
                                 <a
                                     href={record.explorerUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block bg-blue-50/50 hover:bg-blue-50 p-6 rounded-xl border border-blue-100 transition-all group hover:shadow-md"
+                                    className="block group"
                                 >
-                                    <div className="font-mono text-xs break-all text-blue-900 mb-3 truncate opacity-70">
+                                    <div className="font-mono text-[10px] text-blue-900/70 break-all mb-2 transition-opacity opacity-70 group-hover:opacity-100">
                                         {record.signature}
                                     </div>
-                                    <div className="flex items-center text-blue-700 font-bold text-sm">
-                                        View Verified Transaction <ExternalLink className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    <div className="flex items-center text-blue-600 font-semibold text-sm group-hover:underline">
+                                        View Transaction on Explorer <ExternalLink className="w-3 h-3 ml-1" />
                                     </div>
                                 </a>
                             </div>
                         </div>
 
-                        {/* Footer */}
-                        <div className="bg-gray-50 p-8 flex justify-between items-center border-t border-[var(--border)] relative z-10">
-                            <div className="flex items-center gap-2 text-green-700 font-bold text-sm bg-green-50 px-4 py-2 rounded-full border border-green-100">
-                                <CheckCircle className="w-5 h-5" /> Immutably Verified
-                            </div>
+                        {/* Footer Actions */}
+                        <div className="bg-white p-6 border-t border-slate-100 flex justify-between items-center">
                             <button
                                 onClick={() => {
                                     setFile(null);
@@ -268,9 +292,12 @@ export default function EvidenceLocker() {
                                     setStep('upload');
                                     setError(null);
                                 }}
-                                className="text-[var(--text-secondary)] text-sm hover:text-[var(--primary)] font-medium transition-colors hover:underline underline-offset-4"
+                                className="text-slate-500 text-sm hover:text-slate-900 font-medium transition-colors"
                             >
-                                Secure Another File
+                                Notarize Another File
+                            </button>
+                            <button className="px-6 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors">
+                                Download Certificate
                             </button>
                         </div>
                     </motion.div>

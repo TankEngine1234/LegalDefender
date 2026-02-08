@@ -97,22 +97,27 @@ export default function EvidenceAnalyzer() {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto p-4">
+        <div className="w-full max-w-5xl mx-auto p-6">
             <AnimatePresence mode="wait">
                 {step === 'upload' && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                        layout
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                         className="space-y-8"
                     >
                         {/* Evidence Upload Section */}
-                        <div className="glass p-12 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
-                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-[var(--primary)]">
-                                <Camera className="w-7 h-7 text-[var(--danger)]" />
-                                1. Upload Evidence
-                            </h2>
+                        <div className="bg-white border border-slate-200 p-10 rounded-2xl shadow-sm">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="p-3 bg-rose-50 rounded-xl">
+                                    <Camera className="w-6 h-6 text-rose-600" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-900">
+                                    1. Upload Evidence
+                                </h2>
+                            </div>
 
                             <div
-                                className="border-3 border-dashed border-[var(--border)] rounded-2xl p-12 text-center cursor-pointer hover:border-[var(--danger)] hover:bg-red-50/10 transition-all group"
+                                className="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center cursor-pointer hover:border-slate-800 hover:bg-slate-50 transition-all group relative"
                                 onClick={() => evidenceInputRef.current?.click()}
                             >
                                 <input
@@ -123,49 +128,63 @@ export default function EvidenceAnalyzer() {
                                     className="hidden"
                                     onChange={handleEvidenceUpload}
                                 />
-                                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                                    <Upload className="w-10 h-10 text-[var(--danger)]" />
+                                <div className="w-16 h-16 bg-white border border-slate-200 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                                    <Upload className="w-8 h-8 text-slate-400 group-hover:text-slate-600" />
                                 </div>
-                                <p className="font-medium text-xl mb-2 text-[var(--primary)]">Click to upload photos or videos</p>
-                                <p className="text-[var(--text-secondary)]">JPG, PNG, MP4 supported</p>
+                                <p className="font-semibold text-lg mb-1 text-slate-900">Upload Photos or Videos</p>
+                                <p className="text-slate-500 text-sm">Document the damage or issue clearly</p>
                             </div>
 
-                            {evidenceFiles.length > 0 && (
-                                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    {evidenceFiles.map((file, i) => (
-                                        <div key={i} className="relative aspect-square rounded-2xl overflow-hidden shadow-sm border border-[var(--border)] group">
-                                            <img
-                                                src={URL.createObjectURL(file)}
-                                                alt="Preview"
-                                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                            />
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEvidenceFiles(evidenceFiles.filter((_, idx) => idx !== i));
-                                                }}
-                                                className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-full hover:bg-[var(--danger)] transition-colors backdrop-blur-sm"
+                            <AnimatePresence>
+                                {evidenceFiles.length > 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"
+                                    >
+                                        {evidenceFiles.map((file, i) => (
+                                            <motion.div
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.5 }}
+                                                key={i}
+                                                className="relative aspect-square rounded-xl overflow-hidden shadow-sm border border-slate-200 group"
                                             >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                                                <img
+                                                    src={URL.createObjectURL(file)}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                />
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEvidenceFiles(evidenceFiles.filter((_, idx) => idx !== i));
+                                                    }}
+                                                    className="absolute top-2 right-2 bg-white/90 text-slate-700 p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors shadow-sm backdrop-blur-sm"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         {/* Lease & Context Section */}
                         <div className="grid md:grid-cols-2 gap-8">
-                            <div className="glass p-8 rounded-3xl shadow-sm">
-                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--primary)]">
-                                    <FileText className="w-5 h-5 text-[var(--accent)]" />
-                                    2. Lease Agreement (Optional)
-                                </h2>
-                                <p className="text-[var(--text-secondary)] text-sm mb-6">
-                                    Upload your lease to cross-reference terms.
-                                </p>
+                            <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2 bg-blue-50 rounded-lg">
+                                        <FileText className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-slate-900">
+                                        2. Lease Agreement (Optional)
+                                    </h2>
+                                </div>
                                 <div
-                                    className="border-2 border-dashed border-[var(--border)] rounded-2xl p-6 text-center cursor-pointer hover:border-[var(--accent)] transition-all bg-[var(--bg)]"
+                                    className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/20 transition-all"
                                     onClick={() => leaseInputRef.current?.click()}
                                 >
                                     <input
@@ -176,23 +195,27 @@ export default function EvidenceAnalyzer() {
                                         onChange={handleLeaseUpload}
                                     />
                                     {leaseFile ? (
-                                        <div className="flex flex-col items-center justify-center gap-2 text-[var(--success)] font-medium">
-                                            <CheckCircle className="w-8 h-8 mb-1" />
-                                            <span className="truncate max-w-full px-4">{leaseFile.name}</span>
+                                        <div className="flex flex-col items-center justify-center gap-2 text-emerald-600 font-medium">
+                                            <CheckCircle className="w-6 h-6 mb-1" />
+                                            <span className="truncate max-w-full px-4 text-sm">{leaseFile.name}</span>
                                         </div>
                                     ) : (
-                                        <span className="text-[var(--accent)] font-medium">Select File</span>
+                                        <span className="text-slate-500 font-medium text-sm">Select PDF or Text File</span>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="glass p-8 rounded-3xl shadow-sm">
-                                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-[var(--primary)]">
-                                    <TestTube className="w-5 h-5 text-[var(--warning)]" />
-                                    3. Context
-                                </h2>
+                            <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2 bg-amber-50 rounded-lg">
+                                        <TestTube className="w-5 h-5 text-amber-600" />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-slate-900">
+                                        3. Context
+                                    </h2>
+                                </div>
                                 <textarea
-                                    className="w-full h-32 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] resize-none focus:outline-none focus:border-[var(--accent)] transition-colors"
+                                    className="w-full h-32 p-4 rounded-xl border border-slate-200 bg-slate-50 resize-none focus:outline-none focus:border-slate-400 focus:bg-white transition-all text-sm"
                                     placeholder="Describe the issue (e.g. 'Mold started appearing after the pipe burst last week...')"
                                     value={context}
                                     onChange={(e) => setContext(e.target.value)}
@@ -201,157 +224,180 @@ export default function EvidenceAnalyzer() {
                         </div>
 
                         {error && (
-                            <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100 animate-fade-in">
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="p-4 bg-rose-50 text-rose-700 rounded-xl flex items-center gap-2 border border-rose-100"
+                            >
                                 <AlertTriangle className="w-5 h-5 flex-shrink-0" />
                                 {error}
-                            </div>
+                            </motion.div>
                         )}
 
-                        <button
-                            onClick={analyzeEvidence}
-                            disabled={evidenceFiles.length === 0}
-                            className="w-full py-5 bg-[var(--danger)] text-white rounded-2xl font-bold text-xl hover:bg-[#E02E5C] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_10px_40px_-10px_rgba(255,51,102,0.5)] hover:shadow-[0_20px_40px_-10px_rgba(255,51,102,0.6)] hover:-translate-y-1"
-                        >
-                            Start Forensic Investigation
-                        </button>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={analyzeEvidence}
+                                disabled={evidenceFiles.length === 0}
+                                className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold text-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
+                            >
+                                Start Forensic Investigation
+                            </button>
+                        </div>
                     </motion.div>
                 )}
 
                 {step === 'analyzing' && (
                     <motion.div
+                        key="analyzing"
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="flex flex-col items-center justify-center min-h-[60vh] text-center"
+                        className="flex flex-col items-center justify-center min-h-[50vh] text-center"
                     >
                         <div className="w-32 h-32 mb-8 relative">
-                            <div className="absolute inset-0 border-8 border-[var(--border)] rounded-full opacity-30"></div>
-                            <div className="absolute inset-0 border-8 border-[var(--danger)] rounded-full border-t-transparent animate-spin"></div>
-                            <TestTube className="absolute inset-0 m-auto w-12 h-12 text-[var(--danger)] animate-pulse" />
+                            {/* High-tech scanning animation */}
+                            <div className="absolute inset-0 border border-slate-200 rounded-full opacity-20 animate-ping"></div>
+                            <div className="absolute inset-4 border border-slate-300 rounded-full opacity-40 animate-ping" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="absolute inset-0 border-2 border-t-slate-900 border-r-slate-900 border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                            <div className="absolute inset-2 border-2 border-b-rose-500 border-l-rose-500 border-t-transparent border-r-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                            <TestTube className="absolute inset-0 m-auto w-10 h-10 text-slate-800" />
                         </div>
-                        <h2 className="text-4xl font-bold mb-4 text-[var(--primary)]">Analyzing Evidence...</h2>
-                        <div className="max-w-md mx-auto space-y-2">
-                            <p className="text-[var(--text-secondary)] animate-pulse">Diagnosing biological & structural damage...</p>
-                            <p className="text-[var(--text-secondary)] animate-pulse" style={{ animationDelay: '1s' }}>Cross-referencing Texas Property Code...</p>
-                            <p className="text-[var(--text-secondary)] animate-pulse" style={{ animationDelay: '2s' }}>Drafting legal notice...</p>
+                        <h2 className="text-3xl font-bold mb-4 text-slate-900 tracking-tight">Processing Evidence</h2>
+                        <div className="max-w-md mx-auto space-y-3">
+                            <div className="flex items-center gap-3 text-slate-500 text-sm">
+                                <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
+                                Diagnosing biological & structural factors...
+                            </div>
+                            <div className="flex items-center gap-3 text-slate-500 text-sm opacity-80" style={{ animationDelay: '0.5s' }}>
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                Cross-referencing Texas Property Code...
+                            </div>
                         </div>
                     </motion.div>
                 )}
 
                 {step === 'report' && report && (
                     <motion.div
+                        key="report"
                         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                         className="space-y-8"
                     >
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-3xl font-serif font-bold text-[var(--primary)]">Forensic Report</h2>
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Forensic Analysis Report</h2>
                             <button
                                 onClick={() => setStep('upload')}
-                                className="text-[var(--text-secondary)] hover:text-[var(--primary)] flex items-center gap-2 transition-colors"
+                                className="text-slate-500 hover:text-slate-900 flex items-center gap-2 transition-colors text-sm font-medium"
                             >
                                 <ArrowRight className="w-4 h-4 rotate-180" /> Start New Case
                             </button>
                         </div>
 
                         {/* 1. Diagnosis Card */}
-                        <div className="bg-white rounded-3xl overflow-hidden border border-[var(--border)] shadow-xl">
-                            <div className="bg-[#1a1f36] p-10 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-8 opacity-10">
-                                    <TestTube className="w-40 h-40 transform rotate-12" />
+                        <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xl">
+                            <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                                    <TestTube className="w-64 h-64 transform rotate-12" />
                                 </div>
-                                <div className="flex items-center gap-4 mb-4 relative z-10">
-                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm ${report.diagnosis.severity === 'Emergency' ? 'bg-red-600 text-white' : 'bg-orange-500 text-white'
-                                        }`}>
-                                        {report.diagnosis.severity} Severity
-                                    </span>
-                                    <span className="text-gray-400 text-sm font-mono">CASE ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${report.diagnosis.severity === 'Emergency' ? 'bg-rose-500/20 border-rose-500 text-rose-300' : 'bg-orange-500/20 border-orange-500 text-orange-300'}`}>
+                                            {report.diagnosis.severity} Priority
+                                        </div>
+                                        <div className="text-slate-500 text-xs font-mono">ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</div>
+                                    </div>
+                                    <h3 className="text-4xl font-bold mb-2 text-white">{report.diagnosis.issue}</h3>
+                                    <p className="font-mono text-emerald-400 text-sm border-l-2 border-emerald-500/50 pl-3">{report.diagnosis.scientificName}</p>
                                 </div>
-                                <h3 className="text-4xl font-bold mb-2 relative z-10">{report.diagnosis.issue}</h3>
-                                <p className="font-mono text-[var(--accent)] text-lg italic relative z-10">{report.diagnosis.scientificName}</p>
                             </div>
-                            <div className="p-10">
-                                <div className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">Visual Analysis</div>
-                                <p className="text-[var(--text-primary)] text-lg leading-relaxed">{report.diagnosis.description}</p>
+                            <div className="p-8 bg-slate-50/50">
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Visual Diagnosis</div>
+                                <p className="text-slate-700 text-lg leading-relaxed">{report.diagnosis.description}</p>
                             </div>
                         </div>
 
                         {/* 2. Legal Analysis */}
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="bg-[var(--card)] p-8 rounded-3xl border border-[var(--border)] shadow-sm">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-[var(--primary)]">
-                                    <Gavel className="w-6 h-6" /> Legal Analysis
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-900">
+                                    <Gavel className="w-5 h-5 text-slate-500" /> Legal Analysis
                                 </h3>
                                 <div className="space-y-6">
-                                    <div>
-                                        <div className="text-sm text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-1">Code Citation</div>
-                                        <div className="font-mono bg-blue-50 text-blue-800 p-3 rounded-lg text-sm">{report.legalAnalysis.code}</div>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Citation</div>
+                                        <div className="font-mono text-blue-700 text-sm font-semibold">{report.legalAnalysis.code}</div>
                                     </div>
                                     <div>
-                                        <div className="text-sm text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-1">Requirement</div>
-                                        <p className="font-medium">{report.legalAnalysis.requirement}</p>
+                                        <div className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Requirement</div>
+                                        <p className="text-slate-700 text-sm font-medium">{report.legalAnalysis.requirement}</p>
                                     </div>
-                                    <div>
-                                        <div className="text-sm text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-1">Violation Status</div>
-                                        <div className={`inline-block px-3 py-1 rounded-lg font-bold ${report.legalAnalysis.violation.includes('Yes') || report.legalAnalysis.violation.includes('Likely') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                            {report.legalAnalysis.violation}
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className={`w-2 h-2 rounded-full ${report.legalAnalysis.violation.includes('Yes') ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+                                            <div className="text-xs text-slate-400 uppercase tracking-wider font-bold">Violation Status</div>
                                         </div>
-                                        <p className="mt-2 text-sm text-[var(--text-secondary)]">{report.legalAnalysis.explanation}</p>
+                                        <p className="text-slate-600 text-sm">{report.legalAnalysis.explanation}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-[var(--card)] p-8 rounded-3xl border border-[var(--border)] shadow-sm">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-[var(--primary)]">
-                                    <FileText className="w-6 h-6" /> Lease Cross-Reference
+                            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-900">
+                                    <FileText className="w-5 h-5 text-slate-500" /> Lease Cross-Reference
                                 </h3>
                                 {leaseFile || leaseText ? (
                                     <div className="space-y-6">
-                                        <div>
-                                            <div className="text-sm text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-1">Relevant Clause</div>
-                                            <p className="italic text-gray-600 border-l-4 border-gray-300 pl-4 py-2">"{report.leaseCrossReference.relevantClause}"</p>
+                                        <div className="relative">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200 rounded-full"></div>
+                                            <div className="pl-4">
+                                                <div className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Relevant Clause</div>
+                                                <p className="text-slate-600 italic text-sm">"{report.leaseCrossReference.relevantClause}"</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="text-sm text-[var(--text-secondary)] uppercase tracking-wider font-bold mb-1">Conflict Analysis</div>
-                                            <p className="font-medium text-orange-700">{report.leaseCrossReference.conflict}</p>
+                                        <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                                            <div className="text-xs text-orange-800/60 uppercase tracking-wider font-bold mb-1">Conflict Analysis</div>
+                                            <p className="text-orange-900 text-sm font-medium">{report.leaseCrossReference.conflict}</p>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-center text-[var(--text-secondary)] opacity-50">
-                                        <FileText className="w-12 h-12 mb-4" />
-                                        <p>No lease provided for cross-reference.</p>
+                                    <div className="h-40 flex flex-col items-center justify-center text-center text-slate-300 border-2 border-dashed border-slate-100 rounded-xl">
+                                        <FileText className="w-8 h-8 mb-2" />
+                                        <p className="text-sm">No lease provided</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* 3. Action Plan */}
-                        <div className="bg-[var(--card)] p-8 rounded-3xl border border-[var(--border)] shadow-sm">
-                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-[var(--success)]">
-                                <CheckCircle className="w-6 h-6" /> Recommended Action Plan
+                        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-emerald-700">
+                                <CheckCircle className="w-5 h-5" /> Recommended Action Plan
                             </h3>
 
                             <div className="mb-8">
                                 <ul className="space-y-4">
                                     {report.actionPlan.steps.map((step, i) => (
-                                        <li key={i} className="flex gap-4 items-start">
-                                            <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold flex-shrink-0">
+                                        <li key={i} className="flex gap-4 items-center group">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center font-bold text-sm flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
                                                 {i + 1}
                                             </div>
-                                            <p className="font-medium mt-1">{step}</p>
+                                            <p className="text-slate-700 font-medium">{step}</p>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
 
-                            <div className="bg-gray-50 p-6 rounded-2xl border border-[var(--border)]">
+                            <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-[var(--text-secondary)]">Draft Notice to Landlord</h4>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                        <h4 className="font-bold text-slate-500 text-xs uppercase tracking-wider">Draft Notice to Landlord</h4>
+                                    </div>
                                     <button
                                         onClick={() => navigator.clipboard.writeText(report.actionPlan.letterDraft)}
-                                        className="text-xs bg-white border border-[var(--border)] px-3 py-1 rounded-lg hover:bg-gray-100"
+                                        className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all font-medium text-slate-600"
                                     >
-                                        Copy to Clipboard
+                                        Copy Text
                                     </button>
                                 </div>
-                                <pre className="whitespace-pre-wrap font-mono text-sm text-[var(--text-primary)] leading-relaxed">
+                                <pre className="whitespace-pre-wrap font-mono text-sm text-slate-700 leading-relaxed bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                                     {report.actionPlan.letterDraft}
                                 </pre>
                             </div>

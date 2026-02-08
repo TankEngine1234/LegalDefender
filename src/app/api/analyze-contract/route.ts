@@ -51,8 +51,14 @@ export async function POST(req: Request) {
         GROUND TRUTH DATA (Texas Tenant Laws):
         ${JSON.stringify(texasLawsData.state, null, 2)}
         
-        MARKET DATA (College Station):
-        ${JSON.stringify(texasLawsData["college-station"], null, 2)}
+        MARKET DATA (Major Texas Cities):
+        ${JSON.stringify({
+            "college-station": texasLawsData["college-station"],
+            "austin": texasLawsData["austin"],
+            "dallas": texasLawsData["dallas"],
+            "houston": texasLawsData["houston"],
+            "san-antonio": texasLawsData["san-antonio"]
+        }, null, 2)}
 
         RISK SCORING RUBRIC:
         - CRITICAL (Red): Clause is VOID/UNENFORCEABLE under Texas Law (e.g. waiving jury trial, waiving repair duty).
@@ -110,20 +116,36 @@ export async function POST(req: Request) {
         });
 
         let result;
-        try {
-            result = await model.generateContent(userPrompt);
-        } catch (firstError: any) {
-            const is429 = firstError?.message?.includes("429") || firstError?.message?.includes("Too Many Requests");
-            const retryDelay = 17000;
-            if (is429 && retryDelay > 0) {
-                await new Promise(r => setTimeout(r, retryDelay));
+        let attempt = 0;
+        const maxRetries = 3;
+
+        while (attempt <= maxRetries) {
+            try {
                 result = await model.generateContent(userPrompt);
-            } else {
-                throw firstError;
+                break; // Success
+            } catch (error: any) {
+                attempt++;
+                console.log(`Attempt ${attempt} failed:`, error.message);
+
+                const errorMessage = error?.message || error?.toString() || "";
+                const is429 = errorMessage.includes("429") ||
+                    errorMessage.includes("Too Many Requests") ||
+                    errorMessage.includes("Quota exceeded");
+
+                if (is429 && attempt <= maxRetries) {
+                    // Exponential backoff: 2s, 5s, 10s
+                    const delay = [2000, 5000, 10000][attempt - 1] || 10000;
+                    console.log(`Hit rate limit. Retrying in ${delay}ms...`);
+                    await new Promise(r => setTimeout(r, delay));
+                } else {
+                    throw error; // Not a rate limit or out of retries
+                }
             }
         }
 
-        const text = result!.response.text();
+        if (!result) throw new Error("Max retries exceeded");
+
+        const text = result.response.text();
         const cleanedText = text.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
 
         return NextResponse.json(JSON.parse(cleanedText));
@@ -131,7 +153,10 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error("Analyze error:", error);
         return NextResponse.json(
-            { error: "Analysis failed: " + error.message },
+            {
+                error: "Analysis failed due to high traffic. Please try again in 1 minute.",
+                details: error.message
+            },
             { status: 500 }
         );
     }

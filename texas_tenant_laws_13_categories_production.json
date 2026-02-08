@@ -47,6 +47,70 @@
       "401k_match_typical": "4%"
     }
   },
+  "austin": {
+    "location": "Austin, TX",
+    "source": "Apartments.com, Zumper, RentCafe (Feb 2026)",
+    "rental": {
+      "rent_studio": 1281,
+      "rent_1br": 1489,
+      "rent_2br": 1726,
+      "rent_3br": 2527,
+      "late_fee_avg": 50,
+      "pet_fee_one_time": 350,
+      "pet_monthly": 35,
+      "deposit_avg": 1400,
+      "lease_length_months": 12,
+      "application_fee_avg": 60
+    }
+  },
+  "dallas": {
+    "location": "Dallas, TX",
+    "source": "Apartments.com, RentCafe (Feb 2026)",
+    "rental": {
+      "rent_studio": 1270,
+      "rent_1br": 1397,
+      "rent_2br": 1850,
+      "rent_3br": 2371,
+      "late_fee_avg": 45,
+      "pet_fee_one_time": 400,
+      "pet_monthly": 30,
+      "deposit_avg": 1300,
+      "lease_length_months": 12,
+      "application_fee_avg": 55
+    }
+  },
+  "houston": {
+    "location": "Houston, TX",
+    "source": "Apartments.com, RentCafe (Feb 2026)",
+    "rental": {
+      "rent_studio": 1082,
+      "rent_1br": 1180,
+      "rent_2br": 1496,
+      "rent_3br": 1921,
+      "late_fee_avg": 40,
+      "pet_fee_one_time": 300,
+      "pet_monthly": 25,
+      "deposit_avg": 1100,
+      "lease_length_months": 12,
+      "application_fee_avg": 50
+    }
+  },
+  "san-antonio": {
+    "location": "San Antonio, TX",
+    "source": "Apartments.com, Zumper (Feb 2026)",
+    "rental": {
+      "rent_studio": 908,
+      "rent_1br": 1078,
+      "rent_2br": 1367,
+      "rent_3br": 1786,
+      "late_fee_avg": 35,
+      "pet_fee_one_time": 250,
+      "pet_monthly": 20,
+      "deposit_avg": 1000,
+      "lease_length_months": 12,
+      "application_fee_avg": 45
+    }
+  },
   "datasets": [
     {
       "case_id": "GIG_WORKER_AUDIT_01",
