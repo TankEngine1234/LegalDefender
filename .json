@@ -1,0 +1,384 @@
+{
+  "schema_version": "4.0-normalized",
+  "generated_at": "2026-02-08T02:30:00Z",
+  "scope": {
+    "housing_type": "standard residential rentals",
+    "states_included": ["CA", "NY", "MI", "NJ", "TX"]
+  },
+  "states": {
+    "CA": {
+      "state_name": "California",
+      "categories": {
+        "LEASE_BASICS": {
+          "fields": {
+            "lease_types_allowed": {
+              "value": ["written", "oral"],
+              "confidence": "high",
+              "data_missing": false
+            },
+            "written_lease_threshold_months": {
+              "value": 12,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "translation_required": {
+              "value": true,
+              "condition": "if negotiated in Spanish, Chinese, Tagalog, Vietnamese, or Korean",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "receipt_required_for_cash": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        },
+        "SECURITY_DEPOSIT": {
+          "fields": {
+            "max_deposit_amount": {
+              "value": null,
+              "unit": "months_rent",
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "return_deadline_days": {
+              "value": 21,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "itemized_receipt_required": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "interest_payment_required": {
+              "value": false,
+              "confidence": "medium",
+              "data_missing": false
+            }
+          }
+        },
+        "LANDLORD_ENTRY": {
+          "fields": {
+            "notice_required": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "notice_period_hours": {
+              "value": 24,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "entry_permitted_hours": {
+              "value": "business_hours",
+              "confidence": "high",
+              "data_missing": false
+            }
+          }
+        }
+      }
+    },
+    "NY": {
+      "state_name": "New York",
+      "categories": {
+        "LEASE_BASICS": {
+          "fields": {
+            "lease_types_allowed": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "written_lease_threshold_months": {
+              "value": 12,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "translation_required": {
+              "value": false,
+              "condition": null,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "receipt_required_for_cash": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            }
+          }
+        },
+        "SECURITY_DEPOSIT": {
+          "fields": {
+            "max_deposit_amount": {
+              "value": 1,
+              "unit": "months_rent",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "return_deadline_days": {
+              "value": 14,
+              "condition": "non-regulated units",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "itemized_receipt_required": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "interest_payment_required": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        },
+        "LANDLORD_ENTRY": {
+          "fields": {
+            "notice_required": {
+              "value": true,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "notice_period_hours": {
+              "value": null,
+              "notes": "Reasonable notice required, hours not specified in statute",
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "entry_permitted_hours": {
+              "value": "reasonable_hours",
+              "confidence": "medium",
+              "data_missing": false
+            }
+          }
+        }
+      }
+    },
+    "MI": {
+      "state_name": "Michigan",
+      "categories": {
+        "LEASE_BASICS": {
+          "fields": {
+            "lease_types_allowed": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "written_lease_threshold_months": {
+              "value": 12,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "translation_required": {
+              "value": false,
+              "condition": null,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "receipt_required_for_cash": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        },
+        "SECURITY_DEPOSIT": {
+          "fields": {
+            "max_deposit_amount": {
+              "value": 1.5,
+              "unit": "months_rent",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "return_deadline_days": {
+              "value": 30,
+              "condition": "if forwarding address provided",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "itemized_receipt_required": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "interest_payment_required": {
+              "value": false,
+              "confidence": "medium",
+              "data_missing": false
+            }
+          }
+        },
+        "LANDLORD_ENTRY": {
+          "fields": {
+            "notice_required": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "notice_period_hours": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "entry_permitted_hours": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        }
+      }
+    },
+    "NJ": {
+      "state_name": "New Jersey",
+      "categories": {
+        "LEASE_BASICS": {
+          "fields": {
+            "lease_types_allowed": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "written_lease_threshold_months": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "translation_required": {
+              "value": false,
+              "condition": null,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "receipt_required_for_cash": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        },
+        "SECURITY_DEPOSIT": {
+          "fields": {
+            "max_deposit_amount": {
+              "value": 1.5,
+              "unit": "months_rent",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "return_deadline_days": {
+              "value": 30,
+              "condition": "deadline to notify of bank details",
+              "confidence": "high",
+              "data_missing": false
+            },
+            "itemized_receipt_required": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "interest_payment_required": {
+              "value": true,
+              "confidence": "high",
+              "data_missing": false
+            }
+          }
+        },
+        "LANDLORD_ENTRY": {
+          "fields": {
+            "notice_required": {
+              "value": true,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "notice_period_hours": {
+              "value": 24,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "entry_permitted_hours": {
+              "value": "reasonable_hours",
+              "confidence": "medium",
+              "data_missing": false
+            }
+          }
+        }
+      }
+    },
+    "TX": {
+      "state_name": "Texas",
+      "categories": {
+        "LEASE_BASICS": {
+          "fields": {
+            "lease_types_allowed": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "written_lease_threshold_months": {
+              "value": 12,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "translation_required": {
+              "value": false,
+              "condition": null,
+              "confidence": "high",
+              "data_missing": false
+            },
+            "receipt_required_for_cash": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        },
+        "SECURITY_DEPOSIT": {
+          "fields": {
+            "max_deposit_amount": {
+              "value": null,
+              "unit": "months_rent",
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "return_deadline_days": {
+              "value": 30,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "itemized_receipt_required": {
+              "value": true,
+              "confidence": "medium",
+              "data_missing": false
+            },
+            "interest_payment_required": {
+              "value": false,
+              "confidence": "medium",
+              "data_missing": false
+            }
+          }
+        },
+        "LANDLORD_ENTRY": {
+          "fields": {
+            "notice_required": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "notice_period_hours": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            },
+            "entry_permitted_hours": {
+              "value": null,
+              "confidence": "unknown",
+              "data_missing": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
