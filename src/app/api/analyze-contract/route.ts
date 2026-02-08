@@ -152,10 +152,23 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("Analyze error:", error);
+
+        const errorMessage = error?.message || error?.toString() || "";
+
+        if (errorMessage.includes("403") || errorMessage.includes("Forbidden") || errorMessage.includes("API key")) {
+            return NextResponse.json(
+                {
+                    error: "API Key Error: Your key may be invalid, expired, or flagged as leaked. Please update GEMINI_API_KEY in .env.local.",
+                    details: errorMessage
+                },
+                { status: 403 }
+            );
+        }
+
         return NextResponse.json(
             {
                 error: "Analysis failed due to high traffic. Please try again in 1 minute.",
-                details: error.message
+                details: errorMessage
             },
             { status: 500 }
         );

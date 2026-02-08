@@ -65,10 +65,8 @@ export default function RootLayout({
             <header className="bg-white/70 backdrop-blur-xl border-b border-slate-200/50 sticky top-0 z-50 transition-all duration-300">
               <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-3 group">
-                  <div className="bg-violet-600 rounded-xl p-1.5 shadow-lg group-hover:scale-105 transition-transform">
-                    <img src="/logo.png" alt="LegalDefender Logo" className="w-8 h-8 object-contain brightness-0 invert" />
-                  </div>
-                  <span className="brand-title text-xl font-bold tracking-tight text-slate-900 group-hover:text-violet-700 transition-colors">LegalDefender</span>
+                  <img src="/logo.svg" alt="LegalDefender Logo" className="w-12 h-12 object-contain shadow-lg rounded-full group-hover:scale-105 transition-transform" />
+                  <span className="brand-title text-2xl font-bold tracking-tight text-slate-900 group-hover:text-violet-700 transition-colors">LegalDefender</span>
                 </Link>
 
                 <nav className="hidden md:flex items-center gap-1 p-1 bg-slate-100/50 rounded-full border border-slate-200/50">

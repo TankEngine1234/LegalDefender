@@ -1,0 +1,12 @@
+<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#94a3b8" fill-opacity="0.15" fill-rule="evenodd">
+        <!-- Circle -->
+        <circle cx="10" cy="10" r="2" />
+        <!-- Diamond -->
+        <path d="M40 10 L43 13 L40 16 L37 13 Z" />
+        <!-- Star -->
+        <path d="M10 40 L11 43 L14 43 L12 45 L13 48 L10 46 L7 48 L8 45 L6 43 L9 43 Z" />
+        <!-- Small Square -->
+        <rect x="40" y="40" width="3" height="3" />
+    </g>
+</svg>

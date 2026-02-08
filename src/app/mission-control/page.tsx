@@ -27,11 +27,11 @@ export default function MissionControl() {
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-16"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] font-medium mb-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#3B2968] text-white font-bold mb-4 shadow-lg border border-violet-400/30 animate-pulse">
                         <Shield className="w-4 h-4" /> Mission Control
                     </div>
                     <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6 text-[var(--primary)]">
-                        State of <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[var(--success)]">Justice</span>
+                        State of <span className="text-violet-600">Justice</span>
                     </h1>
                     <p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto">
                         Real-time tracking of the systemic imbalance between landlords and tenants. We're leveling the playing field, one lease at a time.
@@ -45,7 +45,7 @@ export default function MissionControl() {
                         className="bg-white p-8 rounded-3xl shadow-sm border border-[var(--border)] relative overflow-hidden"
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -mr-8 -mt-8 opacity-50"></div>
-                        <h3 className="text-lg font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">The Crisis</h3>
+                        <h3 className="text-xl font-black text-rose-500 uppercase tracking-widest mb-2 animate-pulse">The Crisis</h3>
                         <div className="text-5xl font-bold text-[var(--danger)] mb-2">$50 Billion</div>
                         <p className="text-[var(--text-secondary)] mb-6">Stolen from workers annually via wage theft—more than all robberies combined.</p>
                         <div className="flex items-center gap-2 text-sm text-[var(--danger)] font-medium bg-red-50 px-3 py-1 rounded-full w-fit">
@@ -58,7 +58,7 @@ export default function MissionControl() {
                         className="bg-white p-8 rounded-3xl shadow-sm border border-[var(--border)] relative overflow-hidden"
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50"></div>
-                        <h3 className="text-lg font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">The Imbalance</h3>
+                        <h3 className="text-xl font-black text-violet-500 uppercase tracking-widest mb-2 animate-pulse">The Imbalance</h3>
                         <div className="flex items-end gap-2 mb-2">
                             <div className="text-5xl font-bold text-[var(--primary)]">90%</div>
                             <div className="text-xl text-[var(--text-secondary)] mb-2">vs</div>
@@ -109,14 +109,14 @@ export default function MissionControl() {
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
                     className="bg-white p-10 rounded-3xl shadow-sm border border-[var(--border)]"
                 >
-                    <h2 className="text-3xl font-serif font-bold mb-8 text-center text-[var(--primary)]">The Cost of Justice</h2>
+                    <h2 className="text-3xl font-serif font-bold mb-8 text-center text-[var(--primary)]">The Cost of <span className="text-violet-600">Justice</span></h2>
 
                     <div className="flex flex-col md:flex-row gap-8 items-end justify-center h-64">
                         {/* Traditional Legal */}
                         <div className="w-full md:w-1/3 flex flex-col items-center group">
                             <div className="text-2xl font-bold text-[var(--text-secondary)] mb-2">$300/hr</div>
-                            <div className="w-full bg-gray-200 rounded-t-xl h-48 relative overflow-hidden group-hover:bg-gray-300 transition-colors">
-                                <div className="absolute bottom-4 left-0 right-0 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Traditional Lawyer</div>
+                            <div className="w-full bg-[#0A0E27] rounded-t-xl h-48 relative overflow-hidden group-hover:bg-[#1a214d] transition-colors">
+                                <div className="absolute bottom-4 left-0 right-0 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Traditional Lawyer</div>
                             </div>
                         </div>
 

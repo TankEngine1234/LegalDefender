@@ -8,9 +8,9 @@ export default function Home() {
   const { t } = useLanguage();
 
   return (
-    <div className="flex flex-col min-h-screen pb-20">
+    <div className="min-h-screen">
       {/* Hero Section - Fintech Style */}
-      <section className="pt-32 pb-16 px-6">
+      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-12">
             {/* Text Content */}
@@ -58,22 +58,27 @@ export default function Home() {
               {/* Main Scanner Card */}
               <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(124,58,237,0.15)] border border-white relative z-10 rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
                 <div className="flex justify-between items-start mb-8">
-                  <div className="bg-violet-100/50 p-3 rounded-2xl">
+                  <div className="bg-violet-100 p-4 rounded-2xl">
                     <FileText className="w-8 h-8 text-violet-600" />
                   </div>
-                  <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">98% Match</span>
+                  <span className="bg-emerald-100/50 text-emerald-600 text-sm font-bold px-4 py-2 rounded-full">98% Match</span>
                 </div>
-                <div className="space-y-4 mb-8">
-                  <div className="h-4 bg-slate-100 rounded-full w-3/4"></div>
-                  <div className="h-4 bg-slate-100 rounded-full w-full"></div>
-                  <div className="h-4 bg-slate-100 rounded-full w-5/6"></div>
+                <div className="space-y-3 mb-10">
+                  <h4 className="text-slate-900 font-bold text-lg">Lease Agreement Analysis</h4>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    Clause 4.2 contains a hidden repair fee waiver which violates Texas Property Code § 92.006.
+                  </p>
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-400 mt-4">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    Verified against Texas Law
+                  </div>
                 </div>
                 <div className="flex justify-between items-center pt-6 border-t border-slate-50">
                   <div>
                     <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Risk Score</div>
                     <div className="text-2xl font-bold text-slate-900">Low Risk</div>
                   </div>
-                  <div className="bg-slate-900 text-white rounded-full p-2">
+                  <div className="bg-slate-900 text-white rounded-full p-3 hover:bg-slate-800 transition-colors cursor-pointer">
                     <ArrowRight className="w-5 h-5 -rotate-45" />
                   </div>
                 </div>
@@ -92,8 +97,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Floating Stats Card 2 */}
-              <div className="absolute -bottom-8 -left-8 bg-white p-4 rounded-3xl shadow-xl border border-white z-0 md:block hidden">
+              {/* Floating Stats Card 2 - Moved Down Below */}
+              <div className="absolute -bottom-16 left-8 bg-white p-4 rounded-3xl shadow-xl border border-white z-0 md:block hidden opacity-90 scale-95">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-100 p-2 rounded-full">
                     <Shield className="w-5 h-5 text-blue-600" />
@@ -175,9 +180,7 @@ export default function Home() {
       <footer className="py-12 border-t border-slate-100 bg-white mt-20">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-slate-400">
           <div className="flex items-center gap-3 font-bold text-lg mb-4 md:mb-0 text-slate-900">
-            <div className="bg-violet-600 w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="/logo.png" alt="LegalDefender Logo" className="w-4 h-4 object-contain brightness-0 invert" />
-            </div>
+            <img src="/logo.svg" alt="LegalDefender Logo" className="w-8 h-8 object-contain" />
             {t('home.footerBrand')}
           </div>
           <div className="text-xs font-mono">

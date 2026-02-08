@@ -353,22 +353,43 @@ export default function ContractScanner() {
                                     <RiskScoreGauge score={result.riskScore.overall} grade={result.riskScore.grade} />
 
                                     <div className="mt-8 space-y-4">
-                                        {result.riskScore.breakdown.map((item, i) => (
-                                            <div key={i} className="text-left">
-                                                <div className="flex justify-between text-sm mb-1">
-                                                    <span className="font-medium text-[var(--text-primary)]">{item.category}</span>
-                                                    <span className={`font-bold ${item.grade === 'A' || item.grade === 'B' ? 'text-[var(--success)]' : 'text-[var(--warning)]'}`}>{item.grade}</span>
+                                        {result.riskScore.breakdown.map((item, i) => {
+                                            // Grade-based width mapping
+                                            const getWidth = (grade: string) => {
+                                                if (grade.startsWith('A')) return '100%';
+                                                if (grade.startsWith('B')) return '75%';
+                                                if (grade.startsWith('C')) return '50%';
+                                                if (grade.startsWith('D')) return '25%';
+                                                return '0%'; // F
+                                            };
+
+                                            // Grade-based color mapping
+                                            const getColor = (grade: string) => {
+                                                if (grade.startsWith('A')) return 'bg-emerald-500';
+                                                if (grade.startsWith('B')) return 'bg-blue-500';
+                                                if (grade.startsWith('C')) return 'bg-yellow-400';
+                                                if (grade.startsWith('D')) return 'bg-orange-500';
+                                                return 'bg-red-500';
+                                            };
+
+                                            return (
+                                                <div key={i} className="text-left">
+                                                    <div className="flex justify-between text-sm mb-1">
+                                                        <span className="font-medium text-[var(--text-primary)]">{item.category}</span>
+                                                        <span className={`font-bold ${item.grade.startsWith('A') ? 'text-emerald-600' :
+                                                            item.grade.startsWith('B') ? 'text-blue-600' :
+                                                                item.grade.startsWith('C') ? 'text-yellow-600' :
+                                                                    item.grade.startsWith('D') ? 'text-orange-600' : 'text-red-600'}`}>{item.grade}</span>
+                                                    </div>
+                                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-1000 ${getColor(item.grade)}`}
+                                                            style={{ width: getWidth(item.grade) }}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full rounded-full transition-all duration-1000 ${item.grade === 'A' || item.grade === 'B' ? 'bg-[var(--success)]' :
-                                                            item.grade === 'F' ? 'bg-[var(--danger)]' : 'bg-[var(--warning)]'
-                                                            }`}
-                                                        style={{ width: `${item.score}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -387,6 +408,7 @@ export default function ContractScanner() {
                                 </div>
                             </div>
 
+                            {/* Right Col: Tabs */}
                             {/* Right Col: Tabs */}
                             <div className="lg:col-span-2">
                                 <div className="flex gap-8 border-b border-[var(--border)] mb-8">
@@ -414,17 +436,20 @@ export default function ContractScanner() {
                                                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
                                             >
                                                 {result.risks.slice(0, 4).map((risk, i) => (
-                                                    <div key={i} className={`p-6 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-md ${risk.severity === 'high' ? 'border-red-100 bg-red-50/30' :
-                                                        risk.severity === 'medium' ? 'border-orange-100 bg-orange-50/30' : 'border-blue-100 bg-blue-50/30'
+                                                    <div key={i} className={`p-6 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-md ${risk.severity === 'high' ? 'border-red-100 bg-red-50/50 shadow-[0_0_20px_rgba(239,68,68,0.15)]' :
+                                                        risk.severity === 'medium' ? 'border-yellow-100 bg-yellow-50/50 shadow-[0_0_20px_rgba(234,179,8,0.15)]' :
+                                                            'border-blue-100 bg-blue-50/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
                                                         }`}>
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div className="flex items-center gap-2">
-                                                                <AlertTriangle className={`w-5 h-5 ${risk.severity === 'high' ? 'text-[var(--danger)]' :
-                                                                    risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
-                                                                    }`} />
-                                                                <span className={`text-xs font-bold uppercase tracking-wider ${risk.severity === 'high' ? 'text-[var(--danger)]' :
-                                                                    risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
-                                                                    }`}>{risk.severity === 'high' ? t('scanner.highRisk') : risk.severity === 'medium' ? t('scanner.mediumRisk') : t('scanner.lowRisk')}</span>
+                                                                <div className={`p-2 rounded-full ${risk.severity === 'high' ? 'bg-red-100 text-[var(--danger)]' :
+                                                                    risk.severity === 'medium' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'
+                                                                    } shadow-sm`}>
+                                                                    <AlertTriangle className="w-5 h-5" />
+                                                                </div>
+                                                                <span className={`text-sm font-black uppercase tracking-wider drop-shadow-sm ${risk.severity === 'high' ? 'text-[var(--danger)]' :
+                                                                    risk.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
+                                                                    }`}>{risk.severity === 'high' ? t('scanner.highRisk') : risk.severity === 'medium' ? 'MEDIUM RISK' : 'LOW RISK'}</span>
                                                             </div>
                                                         </div>
                                                         <h4 className="text-xl font-bold mb-2 text-[var(--primary)]">{risk.title}</h4>
@@ -451,7 +476,7 @@ export default function ContractScanner() {
                                                             <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.metric')}</th>
                                                             <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.yourContract')}</th>
                                                             <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.marketAvg')}</th>
-                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.status')}</th>
+                                                            <th className="px-6 py-4 text-center text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.status')}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-[var(--border)]">
@@ -460,15 +485,17 @@ export default function ContractScanner() {
                                                                 <td className="px-6 py-4 font-medium text-[var(--primary)]">{metric.label}</td>
                                                                 <td className="px-6 py-4 font-mono text-sm font-bold">{metric.yourValue}</td>
                                                                 <td className="px-6 py-4 text-[var(--text-secondary)] text-sm">{metric.marketAvg}</td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase inline-flex items-center gap-1 ${metric.status === 'fair' ? 'bg-green-100 text-green-700' :
-                                                                        metric.status === 'above' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
-                                                                        }`}>
-                                                                        <div className={`w-1.5 h-1.5 rounded-full ${metric.status === 'fair' ? 'bg-green-500' :
-                                                                            metric.status === 'above' ? 'bg-orange-500' : 'bg-blue-500'
-                                                                            }`} />
-                                                                        {metric.status}
-                                                                    </span>
+                                                                <td className="px-6 py-4 text-center section-center">
+                                                                    <div className="flex justify-center w-full">
+                                                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase inline-flex items-center gap-1 ${metric.status === 'fair' ? 'bg-green-100 text-green-700' :
+                                                                            metric.status === 'above' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                                                                            }`}>
+                                                                            <div className={`w-1.5 h-1.5 rounded-full ${metric.status === 'fair' ? 'bg-green-500' :
+                                                                                metric.status === 'above' ? 'bg-orange-500' : 'bg-blue-500'
+                                                                                }`} />
+                                                                            {metric.status}
+                                                                        </span>
+                                                                    </div>
                                                                     {metric.suggestion && (
                                                                         <div className="text-xs text-[var(--text-secondary)] mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                             💡 {metric.suggestion}
