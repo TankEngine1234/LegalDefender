@@ -1,213 +1,218 @@
+// Simulate Solana Anchor Program Interaction (Demo Mode)
 
-// Mock service to simulate a Solana Anchor Program for Landlord Radar
-// This mimics the on-chain logic specified in the architecture
-
-export interface TenantReview {
-    reviewer_pubkey: string; // Mock wallet address
-    rating: number; // 1-5
+export interface ReviewStruct {
+    reviewer_pubkey: string;
+    rating: number;
     comment: string;
     timestamp: number;
-    is_verified?: boolean; // For "Solana Verified" badge
+    is_verified: boolean;
     tx_signature?: string;
 }
 
-// Corresponds to the Rust struct with added geospatial data for the demo map
-// pub struct PropertyAccount {
-//     pub address_hash: String,
-//     pub violations: Vec<String>,
-//     pub reviews: Vec<TenantReview>,
-// }
 export interface PropertyAccount {
-    address_hash: string; // The primary key (address string)
-    violations: string[]; // ["Mold", "No Hot Water", etc.]
-    reviews: TenantReview[];
-    coordinates: { lat: number, lng: number }; // Stored off-chain or via geohash in real app, explicit here for demo
+    address_hash: string;
+    violations: string[];
+    reviews: ReviewStruct[];
+    reputation_score: number;
+    coordinates?: { lat: number, lng: number };
 }
 
-// Mock On-Chain Storage (PDAs) with College Station Data
-// Key = address_hash (normalized lowercase)
-const PROGRAM_ACCOUNTS: Record<string, PropertyAccount> = {
-    // 1. The Stack
+// ---------------------------------------------------------
+// 1. THE 5 DEMO SCENARIOS (HARDCODED HAPPY PATHS)
+// ---------------------------------------------------------
+const DEMO_DB: Record<string, PropertyAccount> = {
+    // 1. The Nightmare
     "1234 harvey mitchell pkwy": {
-        address_hash: "1234 Harvey Mitchell Pkwy (The Stack)",
-        violations: ["Illegal Late Fees", "Security Deposit Theft"],
-        coordinates: { lat: 30.6333, lng: -96.3667 }, // Approx logic, tuned below
+        address_hash: "1234 Harvey Mitchell Pkwy, College Station",
+        violations: ["Illegal Late Fees (Usury)", "Mold Waiver Clause", "Security Deposit Theft"],
+        reputation_score: 12, // 1.2 stars
+        coordinates: { lat: 30.6097, lng: -96.3090 }, // Approx location
         reviews: [
             {
-                reviewer_pubkey: "8xT...4jK",
+                reviewer_pubkey: "8xT...92j",
                 rating: 1,
-                comment: "They charged me $500 for paint that was already chipped. Glad this is on chain now.",
-                timestamp: 1698754321000,
+                comment: "They kept my whole deposit for 'dust'! Avoid at all costs.",
+                timestamp: Date.now() - 86400000 * 4,
                 is_verified: true,
                 tx_signature: "5gH...92x"
-            }
-        ]
-    },
-    // 2. Park West
-    "501 first st": {
-        address_hash: "501 First St (Park West)",
-        violations: ["Mold in HVAC", "Unannounced Entry"],
-        coordinates: { lat: 30.6125, lng: -96.3475 },
-        reviews: [
+            },
             {
-                reviewer_pubkey: "EpZ...9x1",
-                rating: 2,
-                comment: "Maintenance enters without 24hr notice. Documented it here.",
-                timestamp: 1699123456000,
-                is_verified: true,
-                tx_signature: "3jK...88L"
-            }
-        ]
-    },
-    // 3. Callaway House
-    "401 george bush dr": {
-        address_hash: "401 George Bush Dr (Callaway House)",
-        violations: ["Broken Elevator", "Pest Infestation"],
-        coordinates: { lat: 30.6098, lng: -96.3400 },
-        reviews: [
-            {
-                reviewer_pubkey: "WaLk...22X",
+                reviewer_pubkey: "3mP...77k",
                 rating: 1,
-                comment: "Elevator broken for 3 months. Rats in the trash chute.",
-                timestamp: 1700112233000,
+                comment: "Mold in the AC unit and they refused to fix it.",
+                timestamp: Date.now() - 86400000 * 12,
                 is_verified: true,
-                tx_signature: "9mN...44P"
+                tx_signature: "2fL...88q"
             }
         ]
     },
-    // 4. The London
+
+    // 2. The Golden Standard
+    "501 first st": {
+        address_hash: "501 First St, College Station",
+        violations: [], // Clean
+        reputation_score: 48, // 4.8 stars
+        coordinates: { lat: 30.6133, lng: -96.3358 }, // Park West area
+        reviews: [
+            {
+                reviewer_pubkey: "9jL...11m",
+                rating: 5,
+                comment: "Best landlord in CStat. Fixes things same-day.",
+                timestamp: Date.now() - 86400000 * 2,
+                is_verified: true,
+                tx_signature: "7kP...44m"
+            },
+            {
+                reviewer_pubkey: "2nP...55x",
+                rating: 5,
+                comment: "Fair prices and very respectful management.",
+                timestamp: Date.now() - 86400000 * 10,
+                is_verified: true,
+                tx_signature: "9oQ...22z"
+            }
+        ]
+    },
+
+    // 3. The Mixed Bag
+    "401 george bush dr": {
+        address_hash: "401 George Bush Dr, College Station",
+        violations: ["Unannounced Entry Clause"],
+        reputation_score: 30, // 3.0 stars
+        coordinates: { lat: 30.6100, lng: -96.3400 }, // Callaway House area
+        reviews: [
+            {
+                reviewer_pubkey: "4kR...33p",
+                rating: 3,
+                comment: "Great location, but maintenance enters without knocking.",
+                timestamp: Date.now() - 86400000 * 5,
+                is_verified: true,
+                tx_signature: "1lM...66n"
+            }
+        ]
+    },
+
+    // 4. The New Build
     "200 marion pugh dr": {
-        address_hash: "200 Marion Pugh Dr (The London)",
-        violations: ["Water Leaks"],
-        coordinates: { lat: 30.6015, lng: -96.3265 },
-        reviews: [
-            {
-                reviewer_pubkey: "R3nt...Lr0",
-                rating: 2,
-                comment: "Roof leaked during the storm, management ignored it for a week.",
-                timestamp: 1701223344000,
-                is_verified: true,
-                tx_signature: "2qW...11M"
-            }
-        ]
+        address_hash: "200 Marion Pugh Dr, College Station",
+        violations: ["Construction Waiver"],
+        reputation_score: 0, // N/A
+        coordinates: { lat: 30.6050, lng: -96.3250 }, // The London area
+        reviews: [] // New Listing
     },
-    // Demo fallback for generic searches (Austin)
-    "123 main st": {
-        address_hash: "123 Main St",
-        violations: ["Mold Infestation", "Illegal Late Fees", "HVAC Failure"],
-        coordinates: { lat: 30.2672, lng: -97.7431 },
+
+    // 5. The Student Trap
+    "800 raymond stotzer pkwy": {
+        address_hash: "800 Raymond Stotzer Pkwy, College Station",
+        violations: ["Exorbitant Utility Markup", "No Overnight Guests"],
+        reputation_score: 21, // 2.1 stars
+        coordinates: { lat: 30.6000, lng: -96.3500 }, // Approx
         reviews: [
             {
-                reviewer_pubkey: "EpZ...9x1",
+                reviewer_pubkey: "6tG...44h",
                 rating: 2,
-                comment: "Landlord ignores maintenance requests for months.",
-                timestamp: 1698754321000,
+                comment: "Fine apartment, but the rules are like a prison.",
+                timestamp: Date.now() - 86400000 * 7,
                 is_verified: true,
-                tx_signature: "8uI...00K"
+                tx_signature: "3rF...88v"
             }
         ]
     }
 };
 
-// College Station Coordinates for Geocoding Fallback
-const CS_COORDS: Record<string, { lat: number, lng: number }> = {
-    // Exact mapping for the demo addresses
-    "1234 harvey mitchell pkwy": { lat: 30.6105, lng: -96.3255 }, // Tuned for The Stack
-    "501 first st": { lat: 30.6125, lng: -96.3475 }, // Tuned for Park West
-    "401 george bush dr": { lat: 30.6098, lng: -96.3400 }, // Callaway
-    "200 marion pugh dr": { lat: 30.6015, lng: -96.3265 }, // The London
-};
+// ---------------------------------------------------------
+// 2. BACKEND API SIMULATION
+// ---------------------------------------------------------
+export const LandlordRadarProgram = {
 
-export class LandlordRadarProgram {
+    // Simulate Fetching PDA (Account Info)
+    fetchAccount: async (address: string): Promise<PropertyAccount | null> => {
+        await new Promise(resolve => setTimeout(resolve, 600)); // Network latency
 
-    // Simulate: pub fn fetch_account(ctx: Context<FetchAccount>, address_seed: String) -> Result<PropertyAccount>
-    static async fetchAccount(address: string): Promise<PropertyAccount | null> {
-        // Normalize address to use as seed (lowercase, trimmed)
-        const seed = address.toLowerCase().trim().replace(/,/g, '').split(' (')[0]; // Remove city/state/parens for fuzzy match
+        // 1. Normalized Search Key
+        const normalized = address.toLowerCase();
 
-        console.log(`[Anchor RPC] Fetching PDA for seed: "${seed}"...`);
-        await new Promise(r => setTimeout(r, 600)); // Network latency
-
-        // Simple fuzzy match for demo
-        const key = Object.keys(PROGRAM_ACCOUNTS).find(k => k.includes(seed) || seed.includes(k));
-
-        if (key) {
-            return PROGRAM_ACCOUNTS[key];
+        // 2. CHECK DEMO KEYS FIRST (The "Happy Path")
+        const demoKey = Object.keys(DEMO_DB).find(k => normalized.includes(k));
+        if (demoKey) {
+            // Check for locally added reviews to merge with Demo DB
+            if (typeof window !== 'undefined') {
+                const storedReviews = localStorage.getItem(`legalDefender_reviews_${demoKey}`);
+                if (storedReviews) {
+                    const parsedReviews = JSON.parse(storedReviews);
+                    return {
+                        ...DEMO_DB[demoKey],
+                        reviews: [...parsedReviews, ...DEMO_DB[demoKey].reviews]
+                    };
+                }
+            }
+            return DEMO_DB[demoKey];
         }
 
-        // Return null if not found (clean slate) -> In real app this would be a 404 or empty account
-        return null;
-    }
+        // 3. CHECK LOCAL STORAGE (Simulate Scanner Integration or New properties)
+        if (typeof window !== 'undefined') {
+            const storedData = localStorage.getItem(`legalDefender_db_${address}`);
+            if (storedData) {
+                return JSON.parse(storedData) as PropertyAccount;
+            }
+        }
 
-    // Simulate: pub fn add_review(ctx: Context<AddReview>, content: String, proof_of_tenancy: bool) -> Result<()>
-    static async addReview(
-        address: string,
-        review: { rating: number, comment: string },
-        proofOfTenancy: boolean
-    ): Promise<{ success: boolean, signature?: string, error?: string }> {
+        return null; // Not found -> Frontend treats as "Clean/New"
+    },
 
-        console.log(`[Anchor RPC] Invoking instruction: add_review...`);
-        await new Promise(r => setTimeout(r, 2000)); // Block time simulation (longer for effect)
+    // Simulate "Add Review" Instruction
+    addReview: async (address: string, review: { rating: number, comment: string }, proofOfTenancy: boolean) => {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Blockchain Confirmation Time
 
-        // 1. The Gatekeeper Check (Smart Contract Constraint)
-        // require!(proof_of_tenancy, ErrorCode::TenancyNotVerified);
         if (!proofOfTenancy) {
-            console.error("[Anchor Verification Failed] Transaction rejected: Proof of Tenancy required.");
-            return {
-                success: false,
-                error: "Smart Contract Error: TenancyNotVerified. You must prove tenancy to write to this PDA."
-            };
+            return { success: false, error: "Gatekeeper: No Lease Proof" };
         }
 
-        // 2. Derive PDA Seed logic (reused from fetch)
-        const normalizedInput = address.toLowerCase().trim().replace(/,/g, '').split(' (')[0];
-        const key = Object.keys(PROGRAM_ACCOUNTS).find(k => k.includes(normalizedInput) || normalizedInput.includes(k)) || normalizedInput;
-
-        let account = PROGRAM_ACCOUNTS[key];
-
-        // 3. Initialize Account if needed
-        if (!account) {
-            account = {
-                address_hash: address, // Display name
-                violations: [],
-                reviews: [],
-                coordinates: { lat: 30.6280, lng: -96.3344 } // Default to College Station center if new
-            };
-            PROGRAM_ACCOUNTS[key] = account; // Store it
-        }
-
-        // 4. Update State
-        const txSig = "5gH..." + Math.random().toString(36).substring(2, 5) + "92x";
-        account.reviews.unshift({
-            reviewer_pubkey: "8xT...4jK", // Specified User Wallet
+        const newReview: ReviewStruct = {
+            reviewer_pubkey: "8xT...4jK", // Connected Wallet
             rating: review.rating,
             comment: review.comment,
             timestamp: Date.now(),
             is_verified: true,
-            tx_signature: txSig
-        });
+            tx_signature: "5gH" + Math.random().toString(36).substring(7) + "92x"
+        };
 
-        // 5. Return Transaction Signature
-        return { success: true, signature: txSig };
-    }
+        // Update Local State for Demo Persistence
+        if (typeof window !== 'undefined') {
+            const normalized = address.toLowerCase();
+            const demoKey = Object.keys(DEMO_DB).find(k => normalized.includes(k));
 
-    // Helper to get coordinates for map centering (Geocoding simulation)
-    static getCoordinates(address: string): { lat: number, lng: number } {
-        const seed = address.toLowerCase().trim().replace(/,/g, '').split(' (')[0];
-
-        // Check DB first
-        const key = Object.keys(PROGRAM_ACCOUNTS).find(k => k.includes(seed) || seed.includes(k));
-        if (key && PROGRAM_ACCOUNTS[key].coordinates) {
-            return PROGRAM_ACCOUNTS[key].coordinates;
+            if (demoKey) {
+                // If it's a demo property, we store just the NEW reviews separately to merge later
+                // (Separate key to avoid overwriting the hardcoded const)
+                const existingStored = localStorage.getItem(`legalDefender_reviews_${demoKey}`);
+                const reviews = existingStored ? JSON.parse(existingStored) : [];
+                reviews.unshift(newReview);
+                localStorage.setItem(`legalDefender_reviews_${demoKey}`, JSON.stringify(reviews));
+            } else {
+                // For completely new properties, store the whole account
+                let account = await LandlordRadarProgram.fetchAccount(address);
+                if (!account) {
+                    account = {
+                        address_hash: address,
+                        violations: [],
+                        reviews: [],
+                        reputation_score: 0,
+                        coordinates: { lat: 0, lng: 0 } // handled by map
+                    };
+                }
+                account.reviews.unshift(newReview);
+                localStorage.setItem(`legalDefender_db_${address}`, JSON.stringify(account));
+            }
         }
 
-        // Check fallback list
-        const fallbackKey = Object.keys(CS_COORDS).find(k => k.includes(seed) || seed.includes(k));
-        if (fallbackKey) {
-            return CS_COORDS[fallbackKey];
-        }
+        return { success: true, signature: newReview.tx_signature };
+    },
 
-        // Default to College Station, TX
-        return { lat: 30.6280, lng: -96.3344 };
+    // Helper: Get Hardcoded Coords if available
+    getDemoCoordinates: (address: string) => {
+        const normalized = address.toLowerCase();
+        const demoKey = Object.keys(DEMO_DB).find(k => normalized.includes(k));
+        if (demoKey) return DEMO_DB[demoKey].coordinates;
+        return null;
     }
-}
+};
