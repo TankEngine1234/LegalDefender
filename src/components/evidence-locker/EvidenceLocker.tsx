@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Upload, FileText, CheckCircle, ExternalLink, Shield, Loader, Key, AlertTriangle, Scale } from 'lucide-react';
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair, LAMPORTS_PER_SOL, sendAndConfirmTransaction, TransactionInstruction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, Keypair, sendAndConfirmTransaction, TransactionInstruction } from '@solana/web3.js';
 
 // --- Types ---
 type LockerStep = 'upload' | 'hashing' | 'securing' | 'complete' | 'error';
@@ -33,6 +33,7 @@ export default function EvidenceLocker() {
     const secureOnChain = async () => {
         if (!file) return;
 
+        setError(null);
         try {
             setStep('hashing');
             setStatusMsg('Generating SHA-256 Cryptographic Hash...');
@@ -47,13 +48,19 @@ export default function EvidenceLocker() {
             const burner = Keypair.generate();
 
             setStatusMsg('Requesting Airdrop for Transaction Fees...');
-            try {
-                const airdropSig = await connection.requestAirdrop(burner.publicKey, 1 * LAMPORTS_PER_SOL);
-                await connection.confirmTransaction(airdropSig);
-            } catch (e) {
-                console.warn("Airdrop failed/limited, continuing (might fail if no funds)", e);
-                // For hackathon reliability: If airdrop fails, we might mock or show generic error.
-                // Let's assume it works or handle error gracefully.
+            const airdropRes = await fetch('/api/request-airdrop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publicKey: burner.publicKey.toBase58() }),
+            });
+            const airdropData = await airdropRes.json();
+            if (!airdropRes.ok) {
+                const msg = airdropData?.error || 'Airdrop failed';
+                throw new Error(
+                    airdropData?.code === 'RATE_LIMITED'
+                        ? 'Airdrop limit reached (many providers allow 1 SOL/day). Limit resets daily—try again tomorrow.'
+                        : `Airdrop failed: ${msg}`
+                );
             }
 
             setStatusMsg('Minting "Proof of Condition" Transaction...');
@@ -62,10 +69,11 @@ export default function EvidenceLocker() {
             // Memo Program ID: MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcQb
             const memoProgramId = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcQb");
 
+            const memoData = new TextEncoder().encode(`LegalDefender Proof: ${hash} | File: ${file.name}`);
             const instruction = new TransactionInstruction({
                 keys: [],
                 programId: memoProgramId,
-                data: Buffer.from(`LegalDefender Proof: ${hash} | File: ${file.name}`),
+                data: memoData,
             });
 
             const transaction = new Transaction().add(instruction);
@@ -87,7 +95,23 @@ export default function EvidenceLocker() {
 
         } catch (err: any) {
             console.error(err);
-            setError("Blockchain connection failed (Devnet might be congested). " + (err.message || ""));
+            const msg = err?.message || "";
+            let userMsg = "Blockchain transaction failed. ";
+            if (
+                msg.includes("insufficient") ||
+                msg.includes("429") ||
+                msg.includes("airdrop") ||
+                msg.includes("rate limit") ||
+                msg.includes("no record of a prior credit") ||
+                msg.includes("Attempt to debit")
+            ) {
+                userMsg += "The funding airdrop failed (Devnet is rate-limited). Please wait a few minutes and try again.";
+            } else if (msg.includes("blockhash") || msg.includes("expired")) {
+                userMsg += "Transaction timed out. Please try again.";
+            } else {
+                userMsg += msg || "Devnet may be congested.";
+            }
+            setError(userMsg);
             setStep('error');
         }
     };
@@ -242,6 +266,7 @@ export default function EvidenceLocker() {
                                     setFile(null);
                                     setRecord(null);
                                     setStep('upload');
+                                    setError(null);
                                 }}
                                 className="text-[var(--text-secondary)] text-sm hover:text-[var(--primary)] font-medium transition-colors hover:underline underline-offset-4"
                             >

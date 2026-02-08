@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, CheckCircle, AlertTriangle, Shield, Search, ArrowRight, X } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertTriangle, Shield, Search, ArrowRight, Languages } from 'lucide-react';
 import { extractTextFromFile } from '@/lib/file-processing';
 import { RiskScoreGauge } from './risk-gauge';
+import { useLanguage } from '@/components/LanguageProvider';
 
 // --- Types ---
 type ScanStatus = 'idle' | 'scanning' | 'analyzing' | 'complete' | 'error';
@@ -100,9 +101,12 @@ const SAMPLE_CONTRACTS: Record<string, AnalysisResult & { name: string; type: st
 
 
 export default function ContractScanner() {
+    const { t } = useLanguage();
     const [status, setStatus] = useState<ScanStatus>('idle');
     const [file, setFile] = useState<File | null>(null);
     const [result, setResult] = useState<AnalysisResult | null>(null);
+    const [resultInSpanish, setResultInSpanish] = useState(false);
+    const [translating, setTranslating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'comparison' | 'risks'>('overview');
@@ -163,6 +167,7 @@ export default function ContractScanner() {
             }
 
             setResult(data as AnalysisResult);
+            setResultInSpanish(false);
             setStatus('complete');
         } catch (err: any) {
             setError(err?.message ?? 'Analysis failed. Check that GEMINI_API_KEY is set in your environment.');
@@ -172,13 +177,33 @@ export default function ContractScanner() {
 
     const loadSample = (type: string) => {
         setFile(null);
-        // Simulate loading delay
+        setResultInSpanish(false);
         setStatus('analyzing');
         setTimeout(() => {
             // @ts-ignore
             setResult(SAMPLE_CONTRACTS[type]);
             setStatus('complete');
         }, 1500);
+    };
+
+    const translateToSpanish = async () => {
+        if (!result || translating) return;
+        setTranslating(true);
+        try {
+            const res = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(result),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error ?? 'Translation failed');
+            setResult(data as AnalysisResult);
+            setResultInSpanish(true);
+        } catch (err: any) {
+            setError(err?.message ?? 'Translation failed');
+        } finally {
+            setTranslating(false);
+        }
     };
 
     return (
@@ -205,10 +230,10 @@ export default function ContractScanner() {
                             <div className="w-20 h-20 bg-[var(--accent)]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                                 <Upload className="w-10 h-10 text-[var(--accent)]" />
                             </div>
-                            <h3 className="text-2xl font-bold mb-2">Drop your contract here</h3>
-                            <p className="text-[var(--text-secondary)] mb-6">Supports PDF, DOCX, TXT</p>
+                            <h3 className="text-2xl font-bold mb-2">{t('scanner.dropTitle')}</h3>
+                            <p className="text-[var(--text-secondary)] mb-6">{t('scanner.dropSubtitle')}</p>
                             <button className="px-8 py-3 bg-[var(--primary)] text-white rounded-full font-semibold hover:bg-blue-900 transition-colors">
-                                Select File
+                                {t('scanner.selectFile')}
                             </button>
                             <input
                                 ref={fileInputRef}
@@ -220,7 +245,7 @@ export default function ContractScanner() {
                         </div>
 
                         <div className="text-center">
-                            <p className="text-[var(--text-secondary)] mb-4">Or try a sample contract:</p>
+                            <p className="text-[var(--text-secondary)] mb-4">{t('scanner.orSample')}</p>
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => loadSample('lease')}
@@ -228,8 +253,8 @@ export default function ContractScanner() {
                                 >
                                     <span className="text-2xl">🏠</span>
                                     <div className="text-left">
-                                        <div className="font-bold">Lease Agreement</div>
-                                        <div className="text-xs text-[var(--text-secondary)]">Residential Draft</div>
+                                        <div className="font-bold">{t('scanner.sampleLease')}</div>
+                                        <div className="text-xs text-[var(--text-secondary)]">{t('scanner.sampleLeaseSub')}</div>
                                     </div>
                                 </button>
                             </div>
@@ -248,10 +273,10 @@ export default function ContractScanner() {
                             <Search className="absolute inset-0 m-auto w-10 h-10 text-[var(--accent)] animate-pulse" />
                         </div>
                         <h2 className="text-3xl font-bold mb-2">
-                            {status === 'scanning' ? 'Reading Document...' : 'Analyzing Legal Terms...'}
+                            {status === 'scanning' ? t('scanner.reading') : t('scanner.analyzing')}
                         </h2>
                         <p className="text-[var(--text-secondary)] max-w-md">
-                            Gemini is reviewing every clause, extracting financial terms, and identifying potential risks.
+                            {t('scanner.analyzingDesc')}
                         </p>
                     </motion.div>
                 )}
@@ -264,20 +289,20 @@ export default function ContractScanner() {
                         <div className="w-20 h-20 bg-[var(--danger)]/10 rounded-full flex items-center justify-center">
                             <AlertTriangle className="w-10 h-10 text-[var(--danger)]" />
                         </div>
-                        <h2 className="text-2xl font-bold text-[var(--primary)]">Scan failed</h2>
+                        <h2 className="text-2xl font-bold text-[var(--primary)]">{t('scanner.scanFailed')}</h2>
                         <p className="text-[var(--text-secondary)] text-center max-w-md">{error}</p>
                         <div className="flex gap-4">
                             <button
                                 onClick={() => { setStatus('idle'); setError(null); setFile(null); setResult(null); }}
                                 className="px-6 py-3 bg-[var(--primary)] text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
                             >
-                                Try again
+                                {t('scanner.tryAgain')}
                             </button>
                             <button
                                 onClick={() => loadSample('lease')}
                                 className="px-6 py-3 bg-white border border-[var(--border)] rounded-full font-semibold hover:border-[var(--accent)] transition-colors"
                             >
-                                Use sample lease
+                                {t('scanner.useSample')}
                             </button>
                         </div>
                     </motion.div>
@@ -289,15 +314,32 @@ export default function ContractScanner() {
                         className="w-full"
                     >
                         {/* Header */}
-                        <div className="flex justify-between items-center mb-12">
+                        <div className="flex flex-wrap justify-between items-center gap-4 mb-12">
                             <button
                                 onClick={() => setStatus('idle')}
                                 className="text-[var(--text-secondary)] hover:text-[var(--primary)] flex items-center gap-2 group transition-colors"
                             >
-                                <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" /> Scan Another Contract
+                                <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" /> {t('scanner.scanAnother')}
                             </button>
-                            <div className="px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center gap-2 border border-green-200 shadow-sm">
-                                <CheckCircle className="w-4 h-4" /> Analyzed by Gemini 1.5
+                            <div className="flex items-center gap-3 flex-wrap">
+                                {!resultInSpanish && (
+                                    <button
+                                        onClick={translateToSpanish}
+                                        disabled={translating}
+                                        className="px-4 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded-full text-sm font-medium flex items-center gap-2 border border-[var(--accent)]/30 hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-60"
+                                    >
+                                        <Languages className="w-4 h-4" />
+                                        {translating ? '…' : t('scanner.translateToSpanish')}
+                                    </button>
+                                )}
+                                {resultInSpanish && (
+                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                                        Español
+                                    </span>
+                                )}
+                                <div className="px-4 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium flex items-center gap-2 border border-green-200 shadow-sm">
+                                    <CheckCircle className="w-4 h-4" /> {t('scanner.analyzedBy')}
+                                </div>
                             </div>
                         </div>
 
@@ -307,7 +349,7 @@ export default function ContractScanner() {
                             <div className="space-y-8">
                                 <div className="glass p-8 rounded-3xl shadow-lg text-center relative overflow-hidden group">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--accent)] to-[var(--success)]"></div>
-                                    <h3 className="text-lg font-semibold mb-6 text-[var(--text-secondary)] uppercase tracking-wider">Overall Risk Score</h3>
+                                    <h3 className="text-lg font-semibold mb-6 text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.overallRisk')}</h3>
                                     <RiskScoreGauge score={result.riskScore.overall} grade={result.riskScore.grade} />
 
                                     <div className="mt-8 space-y-4">
@@ -332,7 +374,7 @@ export default function ContractScanner() {
 
                                 <div className="glass p-8 rounded-3xl shadow-lg">
                                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[var(--primary)]">
-                                        <FileText className="w-5 h-5 text-[var(--accent)]" /> Lease Summary
+                                        <FileText className="w-5 h-5 text-[var(--accent)]" /> {t('scanner.leaseSummary')}
                                     </h3>
                                     <ul className="space-y-4">
                                         {result.summary.map((item, i) => (
@@ -348,14 +390,14 @@ export default function ContractScanner() {
                             {/* Right Col: Tabs */}
                             <div className="lg:col-span-2">
                                 <div className="flex gap-8 border-b border-[var(--border)] mb-8">
-                                    {['overview', 'comparison', 'risks'].map((tab) => (
+                                    {(['overview', 'comparison', 'risks'] as const).map((tab) => (
                                         <button
                                             key={tab}
-                                            onClick={() => setActiveTab(tab as any)}
+                                            onClick={() => setActiveTab(tab)}
                                             className={`pb-4 text-lg font-medium capitalize transition-all relative ${activeTab === tab ? 'text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--primary)]'
                                                 }`}
                                         >
-                                            {tab}
+                                            {t(`scanner.${tab}`)}
                                             {activeTab === tab && (
                                                 <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--accent)]" />
                                             )}
@@ -382,14 +424,14 @@ export default function ContractScanner() {
                                                                     }`} />
                                                                 <span className={`text-xs font-bold uppercase tracking-wider ${risk.severity === 'high' ? 'text-[var(--danger)]' :
                                                                         risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
-                                                                    }`}>{risk.severity} Risk</span>
+                                                                    }`}>{risk.severity === 'high' ? t('scanner.highRisk') : risk.severity === 'medium' ? t('scanner.mediumRisk') : t('scanner.lowRisk')}</span>
                                                             </div>
                                                         </div>
                                                         <h4 className="text-xl font-bold mb-2 text-[var(--primary)]">{risk.title}</h4>
                                                         <p className="text-[var(--text-secondary)] mb-4 text-sm leading-relaxed">{risk.description}</p>
                                                         {risk.savings && (
                                                             <div className="inline-block px-3 py-1 bg-white rounded-lg text-sm font-semibold shadow-sm text-green-600 border border-green-100">
-                                                                💰 Potential Savings: {risk.savings}
+                                                                💰 {t('scanner.potentialSavings')}: {risk.savings}
                                                             </div>
                                                         )}
                                                     </div>
@@ -406,10 +448,10 @@ export default function ContractScanner() {
                                                 <table className="w-full">
                                                     <thead className="bg-[var(--bg)] border-b border-[var(--border)]">
                                                         <tr>
-                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Metric</th>
-                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Your Contract</th>
-                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Market Avg</th>
-                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.metric')}</th>
+                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.yourContract')}</th>
+                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.marketAvg')}</th>
+                                                            <th className="px-6 py-4 text-left text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">{t('scanner.status')}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-[var(--border)]">
@@ -453,7 +495,7 @@ export default function ContractScanner() {
                                                                 <div className={`text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1 ${risk.severity === 'high' ? 'text-[var(--danger)]' :
                                                                         risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
                                                                     }`}>
-                                                                    <AlertTriangle className="w-3 h-3" /> {risk.severity} Risk
+                                                                    <AlertTriangle className="w-3 h-3" /> {risk.severity === 'high' ? t('scanner.highRisk') : risk.severity === 'medium' ? t('scanner.mediumRisk') : t('scanner.lowRisk')}
                                                                 </div>
                                                                 <h3 className="text-xl font-bold text-[var(--primary)]">{risk.title}</h3>
                                                             </div>
@@ -465,24 +507,24 @@ export default function ContractScanner() {
                                                         </div>
                                                         <div className="grid md:grid-cols-2 gap-8 mb-6">
                                                             <div>
-                                                                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">Issue</div>
+                                                                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">{t('scanner.issue')}</div>
                                                                 <p className="font-medium text-sm leading-relaxed">{risk.description}</p>
                                                             </div>
                                                             <div>
-                                                                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">Standard / Legal</div>
+                                                                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">{t('scanner.standardLegal')}</div>
                                                                 <p className="font-medium text-sm leading-relaxed">{risk.standard}</p>
                                                             </div>
                                                         </div>
                                                         {risk.script && (
                                                             <div className="bg-[var(--bg)] p-5 rounded-xl text-sm border border-[var(--border)] relative group">
                                                                 <div className="absolute -top-3 left-4 bg-[var(--card)] px-2 text-xs font-bold text-[var(--text-secondary)] border border-[var(--border)] rounded shadow-sm">
-                                                                    NEGOTIATION SCRIPT
+                                                                    {t('scanner.negotiationScript')}
                                                                 </div>
                                                                 <button
                                                                     className="absolute top-2 right-2 text-xs bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
                                                                     onClick={() => navigator.clipboard.writeText(risk.script!)}
                                                                 >
-                                                                    Copy Email
+                                                                    {t('scanner.copyEmail')}
                                                                 </button>
                                                                 <pre className="whitespace-pre-wrap font-mono text-[var(--text-primary)] opacity-80">{risk.script}</pre>
                                                             </div>

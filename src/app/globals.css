@@ -15,16 +15,37 @@
   --success: #00FF88;
   --success-soft: rgba(0, 255, 136, 0.1);
 
-  /* Layout Colors */
+  /* Theme defaults (light) */
   --bg: #FAFBFC;
   --card: #FFFFFF;
   --border: #E1E8ED;
   --text-primary: #0A0E27;
   --text-secondary: #5F6C7B;
+  --bg-gradient-opacity: 0.03;
 
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #0A0E27 0%, #1a2847 100%);
   --gradient-accent: linear-gradient(135deg, #00D9FF 0%, #00B4D8 100%);
+}
+
+/* Light mode */
+[data-theme="light"] {
+  --bg: #FAFBFC;
+  --card: #FFFFFF;
+  --border: #E1E8ED;
+  --text-primary: #0A0E27;
+  --text-secondary: #5F6C7B;
+  --bg-gradient-opacity: 0.03;
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --bg: #0A0E27;
+  --card: #1A2342;
+  --border: rgba(255, 255, 255, 0.12);
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --bg-gradient-opacity: 0.08;
 }
 
 @theme inline {
@@ -44,13 +65,20 @@
   --font-mono: var(--font-ibm-plex-mono);
 }
 
+.brand-title {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
 body {
   background: var(--bg);
   color: var(--text-primary);
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(0, 217, 255, 0.03) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(255, 51, 102, 0.03) 0%, transparent 20%);
+    radial-gradient(circle at 10% 20%, rgba(0, 217, 255, var(--bg-gradient-opacity)) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 51, 102, var(--bg-gradient-opacity)) 0%, transparent 40%);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Glassmorphism Utilities */
