@@ -106,6 +106,7 @@ export default function ContractScanner() {
     const [file, setFile] = useState<File | null>(null);
     const [result, setResult] = useState<AnalysisResult | null>(null);
     const [resultInSpanish, setResultInSpanish] = useState(false);
+    const [originalResult, setOriginalResult] = useState<AnalysisResult | null>(null);
     const [translating, setTranslating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +124,7 @@ export default function ContractScanner() {
         setStatus('scanning');
         setError(null);
         setResult(null);
+        setOriginalResult(null);
 
         try {
             const text = await extractTextFromFile(file);
@@ -168,6 +170,7 @@ export default function ContractScanner() {
 
             setResult(data as AnalysisResult);
             setResultInSpanish(false);
+            setOriginalResult(null);
             setStatus('complete');
         } catch (err: any) {
             setError(err?.message ?? 'Analysis failed. Check that GEMINI_API_KEY is set in your environment.');
@@ -178,6 +181,7 @@ export default function ContractScanner() {
     const loadSample = (type: string) => {
         setFile(null);
         setResultInSpanish(false);
+        setOriginalResult(null);
         setStatus('analyzing');
         setTimeout(() => {
             // @ts-ignore
@@ -186,9 +190,19 @@ export default function ContractScanner() {
         }, 1500);
     };
 
-    const translateToSpanish = async () => {
+    const toggleLanguage = async () => {
         if (!result || translating) return;
+
+        if (resultInSpanish) {
+            if (originalResult) {
+                setResult(originalResult);
+                setResultInSpanish(false);
+            }
+            return;
+        }
+
         setTranslating(true);
+        setOriginalResult(result);
         try {
             const res = await fetch('/api/translate', {
                 method: 'POST',
@@ -201,6 +215,7 @@ export default function ContractScanner() {
             setResultInSpanish(true);
         } catch (err: any) {
             setError(err?.message ?? 'Translation failed');
+            setOriginalResult(null);
         } finally {
             setTranslating(false);
         }
@@ -322,16 +337,18 @@ export default function ContractScanner() {
                                 <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" /> {t('scanner.scanAnother')}
                             </button>
                             <div className="flex items-center gap-3 flex-wrap">
-                                {!resultInSpanish && (
-                                    <button
-                                        onClick={translateToSpanish}
-                                        disabled={translating}
-                                        className="px-4 py-1.5 bg-[var(--accent)]/10 text-[var(--accent)] rounded-full text-sm font-medium flex items-center gap-2 border border-[var(--accent)]/30 hover:bg-[var(--accent)]/20 transition-colors disabled:opacity-60"
-                                    >
-                                        <Languages className="w-4 h-4" />
-                                        {translating ? '…' : t('scanner.translateToSpanish')}
-                                    </button>
-                                )}
+                                <button
+                                    onClick={toggleLanguage}
+                                    disabled={translating}
+                                    className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 border transition-colors disabled:opacity-60 ${resultInSpanish
+                                        ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200'
+                                        : 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/30 hover:bg-[var(--accent)]/20'
+                                        }`}
+                                >
+                                    <Languages className="w-4 h-4" />
+                                    {translating ? '…' : (resultInSpanish ? 'Show Original (English)' : t('scanner.translateToSpanish'))}
+                                </button>
+
                                 {resultInSpanish && (
                                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium border border-green-200">
                                         Español

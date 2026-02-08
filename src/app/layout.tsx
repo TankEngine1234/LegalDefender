@@ -73,7 +73,6 @@ export default function RootLayout({
                   <Link href="/mission-control" className="px-4 py-2 text-sm font-medium text-slate-600 rounded-full hover:bg-white hover:text-violet-700 hover:shadow-sm transition-all">Mission Control</Link>
                   <Link href="/contract-scanner" className="px-4 py-2 text-sm font-medium text-slate-600 rounded-full hover:bg-white hover:text-violet-700 hover:shadow-sm transition-all">Scanner</Link>
                   <Link href="/eviction-defense" className="px-4 py-2 text-sm font-medium text-slate-600 rounded-full hover:bg-white hover:text-violet-700 hover:shadow-sm transition-all">Eviction</Link>
-                  <Link href="/gig-defense" className="px-4 py-2 text-sm font-medium text-slate-600 rounded-full hover:bg-white hover:text-violet-700 hover:shadow-sm transition-all">Gig Union</Link>
                   <Link href="/evidence-locker" className="px-4 py-2 text-sm font-medium text-slate-600 rounded-full hover:bg-white hover:text-violet-700 hover:shadow-sm transition-all">Locker</Link>
                 </nav>
 
