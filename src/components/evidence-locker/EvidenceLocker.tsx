@@ -174,7 +174,7 @@ export default function EvidenceLocker() {
                                 <button
                                     onClick={secureOnChain}
                                     disabled={!file}
-                                    className="group relative px-8 py-4 bg-slate-900 text-white rounded-xl font-medium text-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                                    className="group relative px-8 py-4 bg-violet-600 text-white rounded-xl font-medium text-lg hover:bg-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5"
                                 >
                                     <span className="flex items-center gap-3">
                                         <Shield className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function EvidenceLocker() {
                         className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xl max-w-3xl mx-auto"
                     >
                         {/* Technical Header */}
-                        <div className="bg-slate-900 text-white p-8 border-b border-slate-800 flex justify-between items-start">
+                        <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-8 border-b border-whiteMQ/10 flex justify-between items-start">
                             <div>
                                 <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs uppercase tracking-widest mb-2">
                                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>

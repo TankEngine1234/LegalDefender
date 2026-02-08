@@ -2,15 +2,23 @@ import EvidenceLocker from '@/components/evidence-locker/EvidenceLocker';
 
 export default function EvidenceLockerPage() {
     return (
-        <div className="min-h-screen bg-slate-50">
-            <div className="py-12 bg-slate-900 text-white text-center pb-24">
-                <h1 className="text-4xl font-bold mb-4 tracking-tight">Immutable Evidence Locker</h1>
-                <p className="opacity-80 max-w-2xl mx-auto px-4 font-light text-lg">
-                    Courts require proof that evidence hasn't been tampered with. We generate a cryptographic hash of your files and store it on the Solana blockchain as irrefutable proof of existence.
-                </p>
-            </div>
-            <div className="-mt-16 px-4 pb-12">
-                <EvidenceLocker />
+        <div className="min-h-screen py-12 px-4 md:px-6">
+            <div className="max-w-5xl mx-auto space-y-8">
+                <div className="text-center space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs uppercase tracking-wider mb-2">
+                        Blockchain Verified
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
+                        Immutable Evidence Locker
+                    </h1>
+                    <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
+                        Secure your evidence on the Solana blockchain. Generate a cryptographic hash to prove file existence and integrity for court.
+                    </p>
+                </div>
+
+                <div className="glass-card p-1 md:p-8">
+                    <EvidenceLocker />
+                </div>
             </div>
         </div>
     );

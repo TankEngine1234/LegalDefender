@@ -238,7 +238,7 @@ export default function EvidenceAnalyzer() {
                             <button
                                 onClick={analyzeEvidence}
                                 disabled={evidenceFiles.length === 0}
-                                className="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold text-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
+                                className="px-8 py-4 bg-violet-600 text-white rounded-xl font-bold text-lg hover:bg-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
                             >
                                 Start Forensic Investigation
                             </button>
@@ -292,7 +292,7 @@ export default function EvidenceAnalyzer() {
 
                         {/* 1. Diagnosis Card */}
                         <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xl">
-                            <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
+                            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 p-8 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-5">
                                     <TestTube className="w-64 h-64 transform rotate-12" />
                                 </div>
