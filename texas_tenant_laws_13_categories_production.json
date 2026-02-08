@@ -1,0 +1,609 @@
+{
+  "college-station": {
+    "location": "College Station, TX",
+    "source": "Apartments.com, Zumper, Redfin, HomeAdvisor, Glassdoor, Indeed (Feb 2026)",
+    "rental": {
+      "rent_studio": 1050,
+      "rent_1br": 1070,
+      "rent_2br": 1240,
+      "rent_3br": 1490,
+      "rent_4br": 2200,
+      "rent_5br": 2800,
+      "rent_6br": 3400,
+      "late_fee_avg": 35,
+      "pet_fee_one_time": 300,
+      "pet_monthly": 25,
+      "deposit_avg": 1000,
+      "deposit_note": "Typically 1 month's rent",
+      "notice_days": 45,
+      "notice_note": "Texas minimum for month-to-month",
+      "maintenance_sla": "48 hours",
+      "entry_notice_hours": 24,
+      "lease_length_months": 12,
+      "application_fee_avg": 50,
+      "parking_fee_monthly": 75
+    },
+    "freelance": {
+      "lawn_mowing_monthly": 120,
+      "ac_service_call": 150,
+      "plumber_hourly": 95,
+      "electrician_hourly": 85,
+      "late_payment_penalty": "1.5% monthly",
+      "cancellation_notice": "24 hours",
+      "revision_rounds_typical": 2,
+      "payment_terms_typical": "Net-30"
+    },
+    "employment": {
+      "hourly_min_wage": 12.5,
+      "internship_monthly_stipend": 1200,
+      "signing_bonus_threshold": 5000,
+      "non_compete_years_avg": 1,
+      "relocation_assistance_avg": 2000,
+      "probation_period_months": 3,
+      "pto_days_typical": 15,
+      "pto_note": "Entry-level to mid",
+      "salary_software_engineer_jr": 75000,
+      "salary_software_engineer_mid": 95000,
+      "401k_match_typical": "4%"
+    }
+  },
+  "datasets": [
+    {
+      "case_id": "GIG_WORKER_AUDIT_01",
+      "title": "The 'Missing Mileage' Audit (DoorDash/Uber Style)",
+      "user_type": "Gig Worker",
+      "description": "A driver uploaded their weekly payout CSV. The AI detects that the platform calculated mileage 'as the crow flies' (straight line) instead of 'actual driving distance,' resulting in underpayment.",
+      "legal_context": "Breach of Contract / Deceptive Trade Practices. Platform terms state payment is based on 'estimated route distance,' but the calculation method is consistently 15% lower than reality.",
+      "input_data": {
+        "platform": "FastDash",
+        "pay_period": "2026-02-01 to 2026-02-07",
+        "driver_id": "TX_COLLEGE_STATION_882",
+        "trips": [
+          {
+            "trip_id": "FD_9921",
+            "date": "2026-02-02",
+            "restaurant": "Layne's Chicken Fingers",
+            "customer_location": "The Barracks Townhomes",
+            "platform_calculated_miles": 3.2,
+            "actual_gps_miles": 5.8,
+            "rate_per_mile": 0.65,
+            "base_pay_paid": 4.50,
+            "tip": 3.00
+          },
+          {
+            "trip_id": "FD_9922",
+            "date": "2026-02-02",
+            "restaurant": "Fuego Tortilla Grill",
+            "customer_location": "Texas A&M Campus (Heldenfels Hall)",
+            "platform_calculated_miles": 1.1,
+            "actual_gps_miles": 2.9,
+            "rate_per_mile": 0.65,
+            "base_pay_paid": 2.50,
+            "tip": 0.00
+          },
+          {
+            "trip_id": "FD_9925",
+            "date": "2026-02-03",
+            "restaurant": "Napa Flats",
+            "customer_location": "Pebble Creek",
+            "platform_calculated_miles": 6.0,
+            "actual_gps_miles": 8.5,
+            "rate_per_mile": 0.65,
+            "base_pay_paid": 6.00,
+            "tip": 10.00
+          }
+        ]
+      },
+      "expected_ai_output": {
+        "finding": "Wage Theft Detected",
+        "total_miles_paid": 10.3,
+        "total_miles_driven": 17.2,
+        "missing_mileage": 6.9,
+        "underpayment_amount": 4.49,
+        "legal_basis": "Platform calculated distance significantly below actual driven route (variance > 40%).",
+        "recommended_action": "Generate 'Pay Adjustment Request' citing route data."
+      }
+    },
+    {
+      "case_id": "HOUSING_LEASE_TX_01",
+      "title": "The Predatory 'Student Housing' Lease",
+      "user_type": "Tenant",
+      "description": "A standard Texas apartment lease containing three specific illegal clauses that are common in college towns.",
+      "legal_context": "Texas Property Code Chapter 92 (Landlord-Tenant Law).",
+      "input_text": "RESIDENTIAL LEASE AGREEMENT\n\n1. REPAIRS: Tenant accepts the Property 'AS IS'. Landlord is NOT responsible for repairing conditions caused by normal wear and tear, including air conditioning, plumbing stoppages, or pest infestation. Tenant agrees to pay the first $100 of any repair call.\n\n2. LATE FEES: Rent is due on the 1st. If not received by 5:00 PM on the 1st, a late fee of $75.00 will be charged immediately, plus $20.00 per day until paid.\n\n3. GUESTS: No overnight guests are permitted without Landlord's prior written consent. Unauthorized guests will result in a $200 fine and immediate lease termination.\n\n4. SECURITY DEPOSIT: If Tenant moves out prior to the lease expiration date for any reason, the entire Security Deposit shall be automatically forfeited to Landlord as liquidated damages.",
+      "expected_ai_output": {
+        "risk_score": "High",
+        "red_flags": [
+          {
+            "clause": "Tenant agrees to pay the first $100 of any repair call.",
+            "violation": "Texas Property Code § 92.052",
+            "explanation": "Landlords have a non-waivable duty to repair conditions affecting physical health or safety (like A/C in Texas heat). Shifting this cost for habitability issues is illegal."
+          },
+          {
+            "clause": "Late fee of $75.00 charged immediately on the 1st.",
+            "violation": "Texas Property Code § 92.019",
+            "explanation": "Illegal Late Fee. Texas law prohibits charging a late fee until rent remains unpaid for at least TWO full days after the due date."
+          },
+          {
+            "clause": "Security Deposit automatically forfeited.",
+            "violation": "Texas Property Code § 92.103",
+            "explanation": "Illegal Forfeiture. Landlords must account for actual damages and mitigate losses; they cannot simply keep the deposit as a penalty."
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "EMPLOYMENT_OFFER_01",
+      "title": "The 'Unpaid Intern' Scam",
+      "user_type": "Student / Employee",
+      "description": "An offer letter for a summer internship that claims to be 'educational' but clearly violates FLSA standards for unpaid labor.",
+      "legal_context": "Fair Labor Standards Act (FLSA) & Texas Payday Law.",
+      "input_text": "OFFER OF INTERNSHIP\n\nDear Applicant,\n\nWe are pleased to offer you the position of 'Junior Full Stack Developer Intern' at StealthStartup Inc.\n\nTERMS:\n1. Compensation: This is an unpaid, volunteer position for educational purposes only. You will receive college credit (if applicable).\n2. Duties: You will be responsible for shipping production code for our iOS app, fixing bugs in our backend database, and managing the deployment pipeline.\n3. Schedule: You are required to work 40 hours per week, Mon-Fri, 9am-5pm.\n4. IP Rights: Any code you write belongs strictly to StealthStartup Inc.\n5. Non-Compete: You agree not to work for any other software company for 2 years after this internship ends.",
+      "expected_ai_output": {
+        "risk_score": "Severe",
+        "red_flags": [
+          {
+            "clause": "Responsible for shipping production code... fixing bugs...",
+            "violation": "FLSA 'Primary Beneficiary Test'",
+            "explanation": "Illegal Unpaid Internship. If an intern displaces regular employees and provides immediate advantage to the employer (shipping production code), they MUST be paid minimum wage."
+          },
+          {
+            "clause": "Non-Compete: 2 years",
+            "violation": "FTC Non-Compete Ban / Texas Reasonableness Standard",
+            "explanation": "Highly unenforceable. Non-competes are generally unenforceable for low-wage or unpaid workers, and 2 years is likely unreasonable for an intern."
+          }
+        ]
+      }
+    }
+  ],
+  "schema_version": "3.0",
+  "generated_at": "2026-02-08T02:59:47Z",
+  "scope": {
+    "jurisdiction": "US-TX",
+    "covers": [
+      "standard residential rentals"
+    ],
+    "excludes": [
+      "commercial tenancies",
+      "short-term lodging / hotels"
+    ],
+    "disclaimer": "Informational only; not legal advice."
+  },
+  "categories": [
+    "LEASE_BASICS",
+    "RENT_RULES",
+    "LATE_FEES_AND_PENALTIES",
+    "SECURITY_DEPOSIT_RULES",
+    "PETS_AND_ANIMALS",
+    "HABITABILITY_AND_REPAIRS",
+    "LANDLORD_ENTRY",
+    "PROHIBITED_LEASE_CLAUSES",
+    "EVICTION_RULES",
+    "NOTICE_REQUIREMENTS",
+    "RETALIATION_PROTECTIONS",
+    "REMEDIES_AND_ENFORCEMENT",
+    "LANGUAGE_ACCESS_AND_ACCESSIBILITY"
+  ],
+  "sources": [
+    {
+      "source_id": "TX_STATUTES_PR_92_PDF",
+      "type": "statute_pdf",
+      "title": "Texas Property Code, Chapter 92 (Residential Tenancies) (PDF)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/Docs/PR/pdf/PR.92.pdf"
+    },
+    {
+      "source_id": "TX_STATUTES_PR_91_001",
+      "type": "statute_web",
+      "title": "Texas Property Code § 91.001 (Notice for terminating certain tenancies)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/GetStatute.aspx?Code=PR&Value=91.001"
+    },
+    {
+      "source_id": "TX_STATUTES_PR_24_005",
+      "type": "statute_web",
+      "title": "Texas Property Code § 24.005 (Notice to vacate prior to filing eviction suit)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/StatutesByDate.aspx?code=PR&date=7%2F18%2F2015&level=SE&value=24.005"
+    },
+    {
+      "source_id": "TX_STATUTES_PR_92_201",
+      "type": "statute_web",
+      "title": "Texas Property Code § 92.201 (Disclosure of ownership and management)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/GetStatute.aspx?Code=PR&Value=92.201"
+    },
+    {
+      "source_id": "TX_STATUTES_PR_92_103",
+      "type": "statute_web",
+      "title": "Texas Property Code § 92.103 (Obligation to refund security deposit)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/StatutesByDate.aspx?code=PR&date=3%2F11%2F2015&level=SE&value=92.103"
+    },
+    {
+      "source_id": "TX_STATUTES_PR_92_0561",
+      "type": "statute_web",
+      "title": "Texas Property Code § 92.0561 (Tenant's repair and deduct remedies)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/GetStatute.aspx?Code=PR&Value=92.0561"
+    },
+    {
+      "source_id": "TX_STATUTES_PR_301",
+      "type": "statute_web",
+      "title": "Texas Property Code, Chapter 301 (Texas Fair Housing Act)",
+      "publisher": "Texas Legislature Online (Texas Constitution and Statutes)",
+      "url": "https://statutes.capitol.texas.gov/Docs/PR/htm/PR.301.htm"
+    },
+    {
+      "source_id": "TX_AG_RENTERS_RIGHTS",
+      "type": "gov_guidance",
+      "title": "Renter's Rights",
+      "publisher": "Texas Office of the Attorney General",
+      "url": "https://www.texasattorneygeneral.gov/consumer-protection/home-real-estate-and-travel/renters-rights"
+    },
+    {
+      "source_id": "TX_SLL_RENT",
+      "type": "gov_guidance",
+      "title": "Texas State Law Library – Landlord/Tenant Law: Rent",
+      "publisher": "Texas State Law Library",
+      "url": "https://guides.sll.texas.gov/landlord-tenant-law/rent"
+    },
+    {
+      "source_id": "TX_SLL_REPAIRS",
+      "type": "gov_guidance",
+      "title": "Texas State Law Library – Landlord/Tenant Law: Repairs",
+      "publisher": "Texas State Law Library",
+      "url": "https://guides.sll.texas.gov/landlord-tenant-law/repairs"
+    },
+    {
+      "source_id": "TX_SLL_EVICTION_PROCESS",
+      "type": "gov_guidance",
+      "title": "Texas State Law Library – Landlord/Tenant Law: Eviction Process",
+      "publisher": "Texas State Law Library",
+      "url": "https://guides.sll.texas.gov/landlord-tenant-law/eviction-process"
+    },
+    {
+      "source_id": "TX_SLL_RETALIATION",
+      "type": "gov_guidance",
+      "title": "Texas State Law Library – Landlord/Tenant Law: Landlord Retaliation",
+      "publisher": "Texas State Law Library",
+      "url": "https://guides.sll.texas.gov/landlord-tenant-law/problems-retaliation"
+    }
+  ],
+  "state": {
+    "state_code": "TX",
+    "state_name": "Texas",
+    "LEASE_BASICS": {
+      "fields": {
+        "lease_types_allowed": [
+          "written",
+          "oral"
+        ],
+        "copy_of_written_lease_required": true,
+        "copy_delivery_deadline_business_days": 3,
+        "default_tenancy_if_no_lease_specified": "periodic; often month-to-month if rent is paid monthly"
+      },
+      "rules": [
+        {
+          "rule_id": "TX_LEASE_COPY_3_BD",
+          "summary": "For a written lease, landlord must provide at least one complete copy of the lease to at least one tenant within the 3rd business day after the lease is signed by each party.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code § 92.024",
+              "support": "Lease copy required not later than the third business day after signing."
+            }
+          ]
+        }
+      ]
+    },
+    "RENT_RULES": {
+      "fields": {
+        "rent_increase_notice_required_by_state_statute": false,
+        "rent_control_statewide": false,
+        "local_rent_control_allowed": false
+      },
+      "rules": [
+        {
+          "rule_id": "TX_RENT_INCREASE_NOTICE_NONE",
+          "summary": "Texas generally does not specify a single statewide rent-increase notice period for private residential tenancies; notice is governed by the lease and general tenancy-termination rules.",
+          "source_refs": [
+            {
+              "source_id": "TX_SLL_RENT",
+              "locator": "Rent guide",
+              "support": "State Law Library summarizes rent topics and notes lease/tenancy rules govern many rent-increase situations."
+            }
+          ]
+        }
+      ]
+    },
+    "LATE_FEES_AND_PENALTIES": {
+      "fields": {
+        "late_fee_allowed_if_written_lease_includes_it": true,
+        "late_fee_may_be_charged_after_full_days_late": 2,
+        "presumed_reasonable_cap_percent_of_monthly_rent_le_4_units": 10,
+        "presumed_reasonable_cap_percent_of_monthly_rent_gt_4_units": 12,
+        "late_fee_violation_penalty_to_tenant": "$100 + 3x the late fee collected in violation + reasonable attorney’s fees"
+      },
+      "rules": [
+        {
+          "rule_id": "TX_LATE_FEE_TIMING_AND_SAFE_HARBOR",
+          "summary": "A late fee may be charged only if some portion of rent remains unpaid two full days after the due date; caps are 'presumed reasonable' at 10% (≤4 units) or 12% (>4 units), with exceptions.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code § 92.019",
+              "support": "Two full days late timing + 10%/12% presumptions."
+            },
+            {
+              "source_id": "TX_SLL_RENT",
+              "locator": "Late Fees section",
+              "support": "Explains timing and reasonableness framework."
+            }
+          ]
+        }
+      ]
+    },
+    "SECURITY_DEPOSIT_RULES": {
+      "fields": {
+        "max_security_deposit_limit": null,
+        "deposit_return_deadline_days": 30,
+        "itemized_deductions_required_if_any_withheld": true,
+        "bad_faith_withholding_penalty": "$100 + 3x amount wrongfully withheld + reasonable attorney’s fees",
+        "forwarding_address_required_for_return": true
+      },
+      "rules": [
+        {
+          "rule_id": "TX_SD_RETURN_30_DAYS",
+          "summary": "Landlord must refund the security deposit on or before the 30th day after the tenant surrenders the premises (subject to statutory exceptions).",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_103",
+              "locator": "Prop. Code § 92.103",
+              "support": "30-day obligation to refund security deposit."
+            }
+          ]
+        },
+        {
+          "rule_id": "TX_SD_BAD_FAITH_DAMAGES",
+          "summary": "Bad-faith retention of a security deposit can trigger statutory damages including $100, treble damages, and attorney fees.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code § 92.109",
+              "support": "Landlord liability for bad-faith retention includes $100 + 3x + attorney’s fees."
+            }
+          ]
+        }
+      ]
+    },
+    "PETS_AND_ANIMALS": {
+      "fields": {
+        "pet_deposit_allowed": true,
+        "pet_rent_allowed": true,
+        "assistance_animal_additional_fees_prohibited": true,
+        "assistance_animal_deposit_prohibited": true,
+        "assistance_animal_additional_rent_prohibited": true
+      },
+      "rules": [
+        {
+          "rule_id": "TX_FAIR_HOUSING_DISABILITY_FRAMEWORK",
+          "summary": "Texas fair housing law prohibits disability discrimination in housing and supports accommodation concepts (aligned with federal FHA), which commonly include allowing assistance animals without pet fees/rent/deposits.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_301",
+              "locator": "Prop. Code Ch. 301",
+              "support": "Texas Fair Housing Act statutory framework (disability protections)."
+            }
+          ]
+        }
+      ],
+      "notes": "Texas does not set statewide caps on pet fees/deposits in ordinary private rentals; these are typically lease-controlled except where fair-housing disability accommodations apply."
+    },
+    "HABITABILITY_AND_REPAIRS": {
+      "fields": {
+        "duty_to_repair_health_or_safety": true,
+        "standard": "Condition must materially affect the physical health or safety of an ordinary tenant.",
+        "tenant_notice_required": true,
+        "tenant_must_be_current_on_rent_for_key_remedies": true,
+        "repair_and_deduct_allowed": true,
+        "repair_and_deduct_cap": "Up to one month’s rent or $500, whichever is greater (for qualifying repairs, per month cap).",
+        "rent_withholding_explicitly_authorized": false
+      },
+      "rules": [
+        {
+          "rule_id": "TX_DUTY_TO_REPAIR_92_052",
+          "summary": "Landlord must make a diligent effort to repair/remedy a condition that materially affects health or safety after receiving proper notice.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code § 92.052",
+              "support": "Diligent effort to repair health/safety conditions after notice."
+            },
+            {
+              "source_id": "TX_AG_RENTERS_RIGHTS",
+              "locator": "Health and Safety section",
+              "support": "AG summary references § 92.052."
+            },
+            {
+              "source_id": "TX_SLL_REPAIRS",
+              "locator": "Requesting Repairs",
+              "support": "Library guidance on notices and standards."
+            }
+          ]
+        },
+        {
+          "rule_id": "TX_REPAIR_AND_DEDUCT_92_0561",
+          "summary": "Tenant may use repair-and-deduct in limited circumstances; deductible amount is capped at one month’s rent or $500, whichever is greater.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_0561",
+              "locator": "Prop. Code § 92.0561(b)",
+              "support": "Deduction cap."
+            },
+            {
+              "source_id": "TX_SLL_REPAIRS",
+              "locator": "Failure to Repair guidance",
+              "support": "Explains repair-and-deduct prerequisites."
+            }
+          ]
+        }
+      ],
+      "notes": "Texas repair remedies are procedural (notice, timing, rent current). Store prerequisites separately if your app recommends actions."
+    },
+    "LANDLORD_ENTRY": {
+      "fields": {
+        "statewide_statute_sets_entry_notice": false,
+        "entry_notice_hours": null,
+        "entry_standard_if_lease_silent": "Lease-controlled; absent lease terms, 'reasonable' entry principles may apply (no single statewide notice rule).",
+        "emergency_exception": true
+      },
+      "rules": [],
+      "notes": "Treat entry as lease-controlled in TX unless your dataset is scoped to a special housing program with separate rules."
+    },
+    "PROHIBITED_LEASE_CLAUSES": {
+      "fields": {
+        "waiver_of_duty_to_repair_health_or_safety_generally_void": true,
+        "waiver_of_jury_trial_under_ch_92_void": true
+      },
+      "rules": [
+        {
+          "rule_id": "TX_NO_WAIVER_JURY_TRIAL_CH92",
+          "summary": "A tenant’s right to a jury trial in an action brought under Chapter 92 may not be waived in a lease or other written agreement.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code § 92.006(h)",
+              "support": "No waiver of jury trial right in Ch. 92 actions."
+            }
+          ]
+        },
+        {
+          "rule_id": "TX_WAIVER_DUTY_TO_REPAIR_LIMITED",
+          "summary": "Lease provisions waiving the landlord’s duty to repair health/safety conditions are generally void unless they satisfy narrow statutory requirements for written, conspicuous, specific agreements.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code § 92.006",
+              "support": "Waiver/expansion of duties and remedies; conditions for any waiver."
+            }
+          ]
+        }
+      ]
+    },
+    "EVICTION_RULES": {
+      "fields": {
+        "court_process_required": true,
+        "self_help_eviction_allowed": false,
+        "process_name": "forcible detainer",
+        "typical_filing_court": "Justice Court"
+      },
+      "rules": [
+        {
+          "rule_id": "TX_NOTICE_TO_VACATE_BEFORE_SUING",
+          "summary": "Landlord must provide a notice to vacate before filing a forcible detainer (eviction) suit (unless lease changes the notice period).",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_24_005",
+              "locator": "Prop. Code § 24.005",
+              "support": "Notice required before filing eviction suit."
+            },
+            {
+              "source_id": "TX_SLL_EVICTION_PROCESS",
+              "locator": "Eviction Process overview",
+              "support": "Eviction process guidance."
+            }
+          ]
+        }
+      ]
+    },
+    "NOTICE_REQUIREMENTS": {
+      "fields": {
+        "notice_to_vacate_before_eviction_min_days": 3,
+        "notice_to_vacate_can_be_modified_by_lease": true,
+        "month_to_month_termination_notice_minimum": "one month"
+      },
+      "rules": [
+        {
+          "rule_id": "TX_NOTICE_TO_VACATE_3_DAYS",
+          "summary": "At least 3 days' written notice to vacate is required before filing an eviction suit, unless a written lease provides otherwise.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_24_005",
+              "locator": "Prop. Code § 24.005(a)",
+              "support": "Three days notice to vacate rule; lease may change."
+            }
+          ]
+        },
+        {
+          "rule_id": "TX_TERMINATE_M2M_91_001",
+          "summary": "Month-to-month tenancy may be terminated by either party with at least one month’s notice; termination is on the later of the notice date or one month after notice given.",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_91_001",
+              "locator": "Prop. Code § 91.001",
+              "support": "Month-to-month termination notice rule."
+            }
+          ]
+        }
+      ]
+    },
+    "RETALIATION_PROTECTIONS": {
+      "fields": {
+        "retaliation_prohibited": true,
+        "protected_window_months": 6
+      },
+      "rules": [
+        {
+          "rule_id": "TX_RETALIATION_92_331",
+          "summary": "Texas prohibits landlord retaliation for certain protected tenant actions; retaliation protections commonly apply for 6 months (with exceptions).",
+          "source_refs": [
+            {
+              "source_id": "TX_STATUTES_PR_92_PDF",
+              "locator": "Prop. Code §§ 92.331–92.335",
+              "support": "Retaliation subchapter."
+            },
+            {
+              "source_id": "TX_AG_RENTERS_RIGHTS",
+              "locator": "Retaliation section",
+              "support": "AG explains retaliation protections referencing Chapter 92."
+            },
+            {
+              "source_id": "TX_SLL_RETALIATION",
+              "locator": "Problems: Retaliation",
+              "support": "Library guidance on retaliation."
+            }
+          ]
+        }
+      ]
+    },
+    "REMEDIES_AND_ENFORCEMENT": {
+      "fields": {
+        "repair_and_remedy_case_available_in_justice_court": true,
+        "justice_court_repair_order_cap_dollars": 10000,
+        "security_deposit_bad_faith_damages": "$100 + 3x amount wrongfully withheld + reasonable attorney’s fees",
+        "late_fee_violation_damages": "$100 + 3x late fee collected in violation + reasonable attorney’s fees"
+      },
+      "rules": [
+        {
+          "rule_id": "TX_JP_REPAIR_ORDER_10K",
+          "summary": "Justice courts can order a landlord to repair/remedy health/safety conditions within statutory limits; the AG summarizes a $10,000 repair-cost cap for JP repair orders.",
+          "source_refs": [
+            {
+              "source_id": "TX_AG_RENTERS_RIGHTS",
+              "locator": "Health and Safety section (repair order)",
+              "support": "AG summary references § 92.0563 and $10,000 cap."
+            }
+          ]
+        }
+      ]
+    },
+    "LANGUAGE_ACCESS_AND_ACCESSIBILITY": {
+      "fields": {
+        "statewide_private_lease_translation_required": false
+      },
+      "rules": [],
+      "notes": "No broad state statute requires private residential leases to be translated into the tenant’s language."
+    }
+  }
+}

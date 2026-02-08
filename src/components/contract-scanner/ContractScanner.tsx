@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, CheckCircle, AlertTriangle, Shield, Search, ArrowRight, Languages } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertTriangle, Shield, Search, ArrowRight, Languages, Users } from 'lucide-react';
 import { extractTextFromFile } from '@/lib/file-processing';
 import { RiskScoreGauge } from './risk-gauge';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -362,7 +362,7 @@ export default function ContractScanner() {
                                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                                     <div
                                                         className={`h-full rounded-full transition-all duration-1000 ${item.grade === 'A' || item.grade === 'B' ? 'bg-[var(--success)]' :
-                                                                item.grade === 'F' ? 'bg-[var(--danger)]' : 'bg-[var(--warning)]'
+                                                            item.grade === 'F' ? 'bg-[var(--danger)]' : 'bg-[var(--warning)]'
                                                             }`}
                                                         style={{ width: `${item.score}%` }}
                                                     />
@@ -415,15 +415,15 @@ export default function ContractScanner() {
                                             >
                                                 {result.risks.slice(0, 4).map((risk, i) => (
                                                     <div key={i} className={`p-6 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-md ${risk.severity === 'high' ? 'border-red-100 bg-red-50/30' :
-                                                            risk.severity === 'medium' ? 'border-orange-100 bg-orange-50/30' : 'border-blue-100 bg-blue-50/30'
+                                                        risk.severity === 'medium' ? 'border-orange-100 bg-orange-50/30' : 'border-blue-100 bg-blue-50/30'
                                                         }`}>
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div className="flex items-center gap-2">
                                                                 <AlertTriangle className={`w-5 h-5 ${risk.severity === 'high' ? 'text-[var(--danger)]' :
-                                                                        risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
+                                                                    risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
                                                                     }`} />
                                                                 <span className={`text-xs font-bold uppercase tracking-wider ${risk.severity === 'high' ? 'text-[var(--danger)]' :
-                                                                        risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
+                                                                    risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
                                                                     }`}>{risk.severity === 'high' ? t('scanner.highRisk') : risk.severity === 'medium' ? t('scanner.mediumRisk') : t('scanner.lowRisk')}</span>
                                                             </div>
                                                         </div>
@@ -462,10 +462,10 @@ export default function ContractScanner() {
                                                                 <td className="px-6 py-4 text-[var(--text-secondary)] text-sm">{metric.marketAvg}</td>
                                                                 <td className="px-6 py-4">
                                                                     <span className={`px-2 py-1 rounded text-xs font-bold uppercase inline-flex items-center gap-1 ${metric.status === 'fair' ? 'bg-green-100 text-green-700' :
-                                                                            metric.status === 'above' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                                                                        metric.status === 'above' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
                                                                         }`}>
                                                                         <div className={`w-1.5 h-1.5 rounded-full ${metric.status === 'fair' ? 'bg-green-500' :
-                                                                                metric.status === 'above' ? 'bg-orange-500' : 'bg-blue-500'
+                                                                            metric.status === 'above' ? 'bg-orange-500' : 'bg-blue-500'
                                                                             }`} />
                                                                         {metric.status}
                                                                     </span>
@@ -493,7 +493,7 @@ export default function ContractScanner() {
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div>
                                                                 <div className={`text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1 ${risk.severity === 'high' ? 'text-[var(--danger)]' :
-                                                                        risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
+                                                                    risk.severity === 'medium' ? 'text-[var(--warning)]' : 'text-[var(--accent)]'
                                                                     }`}>
                                                                     <AlertTriangle className="w-3 h-3" /> {risk.severity === 'high' ? t('scanner.highRisk') : risk.severity === 'medium' ? t('scanner.mediumRisk') : t('scanner.lowRisk')}
                                                                 </div>
@@ -537,9 +537,51 @@ export default function ContractScanner() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Trust Signals */}
+                        <div className="mt-16 border-t border-[var(--border)] pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-[var(--text-secondary)]">
+                            <div className="flex gap-6">
+                                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider">
+                                    <Shield className="w-4 h-4 text-[var(--success)]" /> AES-256 Encrypted
+                                </div>
+                                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider">
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div> Solana Verified
+                                </div>
+                                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider">
+                                    <Users className="w-4 h-4 text-[var(--primary)]" /> Anonymous Processing
+                                </div>
+                            </div>
+                            <div className="text-xs text-center md:text-right max-w-md opacity-70">
+                                LegalDefender is an AI tool, not a law firm. Information is for educational purposes only and does not constitute legal advice.
+                            </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
+        </div >
+    );
+}
+
+// Helper component for the "Before & After" interaction (can be expanded)
+function LegaleseToggle({ original, simplified }: { original: string, simplified: string }) {
+    const [showSimplified, setShowSimplified] = useState(false);
+
+    return (
+        <div
+            className="cursor-pointer group relative"
+            onMouseEnter={() => setShowSimplified(true)}
+            onMouseLeave={() => setShowSimplified(false)}
+        >
+            <div className={`transition-opacity duration-300 ${showSimplified ? 'opacity-0 absolute inset-0' : 'opacity-100'}`}>
+                <p className="font-serif italic text-gray-400 border-l-2 border-gray-200 pl-4 my-2 text-sm">
+                    "{original}"
+                </p>
+            </div>
+            <div className={`transition-opacity duration-300 ${showSimplified ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}>
+                <p className="font-medium text-[var(--primary)] border-l-2 border-[var(--accent)] pl-4 my-2 text-sm bg-blue-50/50 rounded-r-lg py-1">
+                    ✨ {simplified}
+                </p>
+            </div>
         </div>
     );
 }

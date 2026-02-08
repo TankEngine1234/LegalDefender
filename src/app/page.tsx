@@ -17,6 +17,10 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-none bg-white/5 backdrop-blur-sm mb-8 animate-fade-in opacity-0" style={{ animationDelay: '0.1s' }}>
             <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
             <span className="text-sm font-medium text-[var(--accent)] tracking-wide uppercase">{t('home.badge')}</span>
+            <span className="mx-2 text-gray-300">|</span>
+            <span className="text-sm font-mono text-[var(--success)]">
+              ${(14250).toLocaleString()} Recovered
+            </span>
           </div>
 
           <h1 className="text-6xl md:text-7xl font-serif font-bold mb-6 leading-tight animate-fade-in opacity-0" style={{ animationDelay: '0.2s' }}>
@@ -135,8 +139,9 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 border-t border-[var(--border)] bg-white mt-auto">
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center opacity-60">
-          <div className="flex items-center gap-2 font-serif font-bold text-xl mb-4 md:mb-0">
-            <Scale className="w-6 h-6" /> {t('home.footerBrand')}
+          <div className="flex items-center gap-3 font-serif font-bold text-xl mb-4 md:mb-0">
+            <img src="/logo.png" alt="LegalDefender Logo" className="w-8 h-8 object-contain" />
+            {t('home.footerBrand')}
           </div>
           <div className="text-sm font-mono">
             {t('home.footerBuilt')}

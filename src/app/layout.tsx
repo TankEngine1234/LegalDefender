@@ -63,12 +63,24 @@ export default function RootLayout({
           <LanguageProvider>
             <HtmlLangSetter />
             <header className="bg-[var(--primary)] text-white py-5 px-6 border-b border-white/10 sticky top-0 z-50">
-              <div className="max-w-6xl mx-auto flex justify-center items-center gap-4">
-                <Link href="/" className="brand-title text-2xl md:text-3xl tracking-tight hover:opacity-90 transition-opacity">
-                  LegalDefender
+              <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+                  <img src="/logo.png" alt="LegalDefender Logo" className="w-8 h-10 object-contain" />
+                  <span className="brand-title text-2xl font-bold tracking-tight">LegalDefender</span>
                 </Link>
-                <LanguageToggle />
-                <ThemeToggle />
+
+                <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+                  <Link href="/mission-control" className="hover:text-[var(--accent)] transition-colors">Mission Control</Link>
+                  <Link href="/contract-scanner" className="hover:text-[var(--accent)] transition-colors">Scanner</Link>
+                  <Link href="/eviction-defense" className="hover:text-[var(--accent)] transition-colors">Eviction</Link>
+                  <Link href="/gig-defense" className="hover:text-[var(--accent)] transition-colors">Gig Union</Link>
+                  <Link href="/evidence-locker" className="hover:text-[var(--accent)] transition-colors">Locker</Link>
+                </nav>
+
+                <div className="flex items-center gap-4">
+                  <LanguageToggle />
+                  <ThemeToggle />
+                </div>
               </div>
             </header>
             {children}
