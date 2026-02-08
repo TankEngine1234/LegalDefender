@@ -100,12 +100,26 @@ ${contractText}`;
         // Note: Removed legacy 40000 char limit to leverage Gemini 1.5 context window
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.5-flash-lite", // Free tier: 15 RPM, 1000 RPD
             generationConfig: { responseMimeType: "application/json" }
         });
 
-        const result = await model.generateContent(userPrompt);
-        const text = result.response.text();
+        let result;
+        try {
+            result = await model.generateContent(userPrompt);
+        } catch (firstError: any) {
+            // Retry once after delay on 429 (rate limit)
+            const is429 = firstError?.message?.includes("429") || firstError?.message?.includes("Too Many Requests");
+            const retryDelay = 17000; // 17s to match API suggestion
+            if (is429 && retryDelay > 0) {
+                await new Promise(r => setTimeout(r, retryDelay));
+                result = await model.generateContent(userPrompt);
+            } else {
+                throw firstError;
+            }
+        }
+
+        const text = result!.response.text();
 
         // Clean up potential markdown code blocks (SDK usually handles this with responseMimeType, but good to be safe)
         const cleanedText = text.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
@@ -114,9 +128,15 @@ ${contractText}`;
 
     } catch (error: any) {
         console.error("Analyze error:", error);
+        const msg = error?.message ?? "Analysis failed";
+        const isQuota = msg.includes("429") || msg.includes("quota") || msg.includes("Too Many Requests");
         return NextResponse.json(
-            { error: error.message || "Analysis failed" },
-            { status: 500 }
+            {
+                error: isQuota
+                    ? "Rate limit exceeded. Wait a minute and try again, or check your Gemini API quota: https://ai.google.dev/gemini-api/docs/rate-limits"
+                    : msg
+            },
+            { status: isQuota ? 429 : 500 }
         );
     }
 }

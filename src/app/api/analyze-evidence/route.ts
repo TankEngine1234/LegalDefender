@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     `;
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash", // Using Flash for speed/cost, allows vision
+            model: "gemini-2.5-flash-lite", // Free tier: 15 RPM, 1000 RPD; supports vision
             generationConfig: { responseMimeType: "application/json" }
         });
 

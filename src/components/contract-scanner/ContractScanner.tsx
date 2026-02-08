@@ -122,9 +122,19 @@ export default function ContractScanner() {
 
         try {
             const text = await extractTextFromFile(file);
-            await analyzeContract(text, 'lease'); // Default to lease for now, can add selector
+            const trimmed = text?.trim() ?? '';
+            if (trimmed.length < 50) {
+                setError(
+                    trimmed.length === 0
+                        ? 'No text could be read from this file. Try a PDF or DOCX with selectable text, or use a plain .txt file.'
+                        : 'Not enough text was extracted to analyze. The file may be image-only or corrupted. Try a different file or use the sample lease.'
+                );
+                setStatus('error');
+                return;
+            }
+            await analyzeContract(trimmed, 'lease'); // Default to lease for now, can add selector
         } catch (err: any) {
-            setError(err.message);
+            setError(err?.message ?? 'Something went wrong. Check that GEMINI_API_KEY is set and try again.');
             setStatus('error');
         }
     };
@@ -138,16 +148,24 @@ export default function ContractScanner() {
                 body: JSON.stringify({ contractText: text, contractType: type }),
             });
 
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Analysis failed');
+            let data: unknown;
+            try {
+                data = await res.json();
+            } catch {
+                throw new Error(res.ok ? 'Invalid response from server' : `Analysis failed (${res.status})`);
             }
 
-            const data = await res.json();
-            setResult(data);
+            if (!res.ok) {
+                const msg = typeof data === 'object' && data !== null && 'error' in data
+                    ? String((data as { error: string }).error)
+                    : 'Analysis failed';
+                throw new Error(msg);
+            }
+
+            setResult(data as AnalysisResult);
             setStatus('complete');
         } catch (err: any) {
-            setError(err.message);
+            setError(err?.message ?? 'Analysis failed. Check that GEMINI_API_KEY is set in your environment.');
             setStatus('error');
         }
     };
@@ -235,6 +253,33 @@ export default function ContractScanner() {
                         <p className="text-[var(--text-secondary)] max-w-md">
                             Gemini is reviewing every clause, extracting financial terms, and identifying potential risks.
                         </p>
+                    </motion.div>
+                )}
+
+                {status === 'error' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                        className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 p-6"
+                    >
+                        <div className="w-20 h-20 bg-[var(--danger)]/10 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="w-10 h-10 text-[var(--danger)]" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-[var(--primary)]">Scan failed</h2>
+                        <p className="text-[var(--text-secondary)] text-center max-w-md">{error}</p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => { setStatus('idle'); setError(null); setFile(null); setResult(null); }}
+                                className="px-6 py-3 bg-[var(--primary)] text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
+                            >
+                                Try again
+                            </button>
+                            <button
+                                onClick={() => loadSample('lease')}
+                                className="px-6 py-3 bg-white border border-[var(--border)] rounded-full font-semibold hover:border-[var(--accent)] transition-colors"
+                            >
+                                Use sample lease
+                            </button>
+                        </div>
                     </motion.div>
                 )}
 

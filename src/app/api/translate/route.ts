@@ -26,7 +26,7 @@ INPUT JSON:
 ${JSON.stringify(payload)}`;
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.5-flash-lite", // Free tier: 15 RPM, 1000 RPD
             generationConfig: { responseMimeType: "application/json" }
         });
 

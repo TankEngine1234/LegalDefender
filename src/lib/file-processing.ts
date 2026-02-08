@@ -24,9 +24,9 @@ async function extractTextFromPDF(file: File): Promise<string> {
     // Dynamic import to avoid SSR issues
     const pdfjsLib = await import('pdfjs-dist');
 
-    // Set worker
+    // Use worker copied to public/ by postinstall (avoids CDN CORS / module load failures)
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
     }
 
     const arrayBuffer = await file.arrayBuffer();
